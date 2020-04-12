@@ -69,7 +69,6 @@ export default class JoinMeetingController {
     @Delete(':title')
     private async deleteMeeting(req: Request, res: Response) {
         const title = req.params.title;
-        console.log('delete', title, Boolean(this.meetingCache[title]));
         if (this.meetingCache[title]) {
             try {
                 await this.chime.deleteMeeting({

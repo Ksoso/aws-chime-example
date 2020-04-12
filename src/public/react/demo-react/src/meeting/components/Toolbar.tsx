@@ -100,26 +100,6 @@ const Toolbar: React.FC<ToolbarProps> = ({onToolbarClick}) => {
                 <SettingsIcon/>
             </ToggleButton>
         </StyledToggleButtonGroup>
-        {/*<Button variant={'contained'} color={'primary'} onClick={async () => {*/}
-        {/*    await MeetingManager.endMeeting();*/}
-        {/*    console.log('meeting ended');*/}
-        {/*}*/}
-        {/*}>End meeting</Button>*/}
-        {/*<Button variant={'contained'} color={'primary'} onClick={() => {*/}
-        {/*    MeetingManager.leaveMeeting();*/}
-        {/*}}>Leave meeting</Button>*/}
-        {/*<Button variant={'contained'} color={'primary'} onClick={async () => {*/}
-        {/*    await MeetingManager.startLocalVideo();*/}
-        {/*}}>Start video</Button>*/}
-        {/*<Button variant={'contained'} color={'primary'} onClick={() => {*/}
-        {/*    MeetingManager.stopLocalVideo();*/}
-        {/*}}>Stop video</Button>*/}
-        {/*<Button variant={'contained'} color={'primary'} onClick={async () => {*/}
-        {/*    await MeetingManager.muteLocalAudio();*/}
-        {/*}}>Mute</Button>*/}
-        {/*<Button variant={'contained'} color={'primary'} onClick={() => {*/}
-        {/*    MeetingManager.unmuteLocalAudio();*/}
-        {/*}}>Unmute</Button>*/}
     </Paper>;
 };
 

@@ -4,9 +4,14 @@ export const EVENTS = {
     CONNECT: 'connect',
     DISCONNECT: 'disconnect',
     USER_LIST: 'userList',
-    JOIN_USER: 'userJoin',
+    SUBSCRIBE: 'subscribe',
+    CALL_STATUS_CHANGE: 'callStatusChange',
     CALL_INCOMING: 'callIncoming',
-    CALL_TO_USER: 'callToUser'
+    CALL_TO_USER: 'callToUser',
+    CALL_ACCEPTED: 'callAccepted',
+    CALL_DECLINED: 'callDeclined',
+    ACCEPT_USER_CALL: 'acceptUserCall',
+    DECLINE_USER_CALL: 'declineUserCall'
 };
 
 class Socket {

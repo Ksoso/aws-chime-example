@@ -23,6 +23,7 @@ class DemoServer extends Server {
     private server?: NodeHttp;
     private usersMap: {
         [key: string]: {
+            wsId: string,
             userName: string,
             uuid: string
         }
@@ -67,24 +68,37 @@ class DemoServer extends Server {
         Logger.Info('initializing socket');
         const io = require('socket.io')(this.server);
         io.on('connect', (socket: Socket) => {
-            Logger.Info('user connected');
+            Logger.Info(`user connected: ${socket.id}`);
 
-            socket.on('userJoin', (data: any) => {
+            socket.on('subscribe', (data: any) => {
                 if (this.usersMap[socket.id]) {
                     this.usersMap[socket.id].userName = data.userName;
                 } else {
                     this.usersMap[socket.id] = {
+                        wsId: socket.id,
                         userName: data.userName,
                         uuid: uuidV4(),
-                    }
+                    };
                 }
                 io.emit('userList', this.usersMap, socket.id);
             });
 
             socket.on('callToUser', (data: any) => {
-                socket.broadcast.to(data.recipient).emit('callIncoming', {
-                    meetingId: data.meetingId, recipient: data.sender
-                })
+                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
+                    meetingId: data.meetingId, sender: data.sender, status: 'incoming'
+                });
+            });
+
+            socket.on('acceptUserCall', (data: any) => {
+                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
+                    meetingId: data.meetingId, sender: data.sender, status: 'in-progress'
+                });
+            });
+
+            socket.on('declineUserCall', (data: any) => {
+                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
+                    meetingId: data.meetingId, sender: data.sender, status: 'rejected'
+                });
             });
 
             socket.on('disconnect', () => {

@@ -22,7 +22,7 @@ const useStyles = makeStyles({
     }
 }, {name: 'MeetingRoom'});
 
-const MeetingRoom: React.FC = () => {
+const MeetingRoom = () => {
     const classes = useStyles();
 
     const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);

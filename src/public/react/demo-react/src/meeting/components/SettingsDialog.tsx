@@ -59,15 +59,25 @@ const SettingsDialog: React.FC<{ open: boolean, onClose: () => void }> = ({open 
         };
 
         (async function loadMediaDevices() {
-            const audioInputs = (await deviceController.listAudioInputDevices()).map(mapToSelectOption);
-            const audioOutputs = (await deviceController.listAudioOutputDevices()).map(mapToSelectOption);
-            const videoInputs = (await deviceController.listVideoInputDevices()).map(mapToSelectOption);
+            const [audioInputsP, audioOutputsP, videoInputsP] = await Promise.all<MediaDeviceInfo[], MediaDeviceInfo[], MediaDeviceInfo[]>([
+                deviceController.listAudioInputDevices(),
+                deviceController.listAudioOutputDevices(),
+                deviceController.listVideoInputDevices()
+            ]);
 
-            setAudioInputs(audioInputs);
-            setAudioOutputs(audioOutputs);
-            setVideoInputs(videoInputs);
+            setAudioInputs(audioInputsP.map(mapToSelectOption));
+            setAudioOutputs(audioOutputsP.map(mapToSelectOption));
+            setVideoInputs(videoInputsP.map(mapToSelectOption));
         })();
     }, []);
+
+    useEffect(() => {
+
+        setFormState({
+            ...formState, 'microphone': audioInputs.length > 1 ? audioInputs[0].value : ''
+        });
+
+    }, [audioInputs]);
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         setFormState({
@@ -87,7 +97,8 @@ const SettingsDialog: React.FC<{ open: boolean, onClose: () => void }> = ({open 
         <DialogTitle>Settings</DialogTitle>
         <DialogContent>
             <form id='form-devices'>
-                <TextField select label='Select audio input' name='microphone' value={formState.microphone}
+                <TextField select label='Select audio input' name='microphone'
+                           value={formState.microphone}
                            onChange={handleChange} fullWidth>
                     {
                         audioInputs.map(({label, value}) => {
@@ -97,7 +108,8 @@ const SettingsDialog: React.FC<{ open: boolean, onClose: () => void }> = ({open 
                         })
                     }
                 </TextField>
-                <TextField select label='Select audio output' name='speakers' value={formState.speakers}
+                <TextField select label='Select audio output' name='speakers'
+                           value={formState.speakers}
                            onChange={handleChange} fullWidth>
                     {
                         audioOutputs.map(({label, value}) => {

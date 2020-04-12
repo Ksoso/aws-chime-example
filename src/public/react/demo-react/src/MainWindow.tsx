@@ -12,7 +12,7 @@ import {
     ListItemText,
     Toolbar
 } from '@material-ui/core';
-import JoinForm from './components/JoinForm';
+import JoinForm from './join/components/JoinForm';
 import DeviceManagementForm from './components/DeviceManagement';
 import Socket, {EVENTS} from './Socket';
 import {Phone as PhoneIcon, Work as WorkIcon} from '@material-ui/icons';
@@ -52,6 +52,7 @@ const MainWindow: React.FC<{ wsConnected: boolean }> = ({wsConnected}) => {
 
         return () => {
             Socket.off(EVENTS.USER_LIST);
+            Socket.off(EVENTS.CALL_INCOMING);
         };
 
     }, [wsConnected]);

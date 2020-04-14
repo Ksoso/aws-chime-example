@@ -1,6 +1,6 @@
 import {Dispatch} from 'react';
 import {Action, Type} from '../reducer';
-import Socket, {EVENTS} from '../../../../Socket';
+import Socket, {EVENTS} from '../../../../shared/Socket';
 
 interface UserList {
     [key: string]: {
@@ -10,9 +10,10 @@ interface UserList {
     }
 }
 
-export default function bindSocketEvents(socket: typeof Socket, dispatch: Dispatch<Action>) {
+export default function bindSocketEvents(socket: Socket, dispatch: Dispatch<Action>) {
 
     socket.on(EVENTS.USER_LIST, (userList: UserList) => {
+        console.log('socket', socket, userList);
         dispatch({type: Type.SetActiveUsers, activeUsers: userList});
     });
 

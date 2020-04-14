@@ -6,7 +6,6 @@ import {
     Headset as SpeakerIcon,
     Mic as MicIcon,
     PhoneDisabled as EndMeetingIcon,
-    Settings as SettingsIcon,
     Videocam as VideoCamIcon
 } from '@material-ui/icons';
 import {makeStyles} from '@material-ui/core/styles';
@@ -54,14 +53,13 @@ const Toolbar: React.FC<ToolbarProps> = ({onToolbarClick}) => {
         const actualButtonState = [...media];
         let nextButtonState: string[] = [];
 
-        //meeting and settings toggle buttons are treated as regular buttons
+        //meeting toggle buttons are treated as regular buttons
         switch (type) {
             case 'media':
                 nextButtonState = [...newBtnStates];
                 setMedia(newBtnStates);
                 break;
             case 'meeting':
-            case 'settings':
                 nextButtonState = [...media, ...newBtnStates];
                 break;
             default:
@@ -75,7 +73,7 @@ const Toolbar: React.FC<ToolbarProps> = ({onToolbarClick}) => {
 
     return <Paper className={classes.paper}>
         <StyledToggleButtonGroup value={media} onChange={handleChange('media')}>
-            <ToggleButton value='videoOut' aria-label='turn on/off video camera'>
+            <ToggleButton value='videoIn' aria-label='turn on/off video camera'>
                 <VideoCamIcon/>
             </ToggleButton>
             <ToggleButton value='audioIn' aria-label='turn on/off microphone'>
@@ -92,12 +90,6 @@ const Toolbar: React.FC<ToolbarProps> = ({onToolbarClick}) => {
             </ToggleButton>
             <ToggleButton value='endMeeting' aria-label='End meeting'>
                 <EndMeetingIcon/>
-            </ToggleButton>
-        </StyledToggleButtonGroup>
-        <Divider orientation={'vertical'} className={classes.divider}/>
-        <StyledToggleButtonGroup onChange={handleChange('settings')}>
-            <ToggleButton value='settings' aria-label='Settings'>
-                <SettingsIcon/>
             </ToggleButton>
         </StyledToggleButtonGroup>
     </Paper>;

@@ -10,10 +10,10 @@ const useStyles = makeStyles(theme => createStyles({
         marginTop: theme.spacing(8),
     },
     leftBox: {
-        borderRight: `1px solid black`
+        borderRight: `1px solid ${theme.palette.divider}`
     },
     rightBox: {
-        borderLeft: `1px solid black`
+        borderLeft: `1px solid ${theme.palette.divider}`
     }
 }), {name: 'JoiningRoom'});
 

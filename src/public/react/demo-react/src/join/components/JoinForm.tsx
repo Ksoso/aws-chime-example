@@ -1,29 +1,15 @@
 import React from 'react';
 import {Button, Divider, TextField, Typography} from '@material-ui/core';
-import {SocketEmitters} from '../containers/JoiningProvider/socket/emitters';
-
-// const awsLocales = [
-//     {value: 'us-east-1', label: 'United States (N. Virginia)'},
-//     {value: 'ap-northeast-1', label: 'Japan (Tokyo)'},
-//     {value: 'ap-southeast-1', label: 'Singapore'},
-//     {value: 'ap-southeast-2', label: 'Australia (Sydney)'},
-//     {value: 'ca-central-1', label: 'Canada'},
-//     {value: 'eu-central-1', label: 'Germany (Frankfurt)'},
-//     {value: 'eu-north-1', label: 'Sweden (Stockholm)'},
-//     {value: 'eu-west-1', label: 'Ireland'},
-//     {value: 'eu-west-2', label: 'United Kingdom (London)'},
-//     {value: 'eu-west-3', label: 'France (Paris)'},
-//     {value: 'sa-east-1', label: 'Brazil (São Paulo)'},
-//     {value: 'us-east-2', label: 'United States (Ohio)'},
-//     {value: 'us-west-1', label: 'United States (N. California)'},
-//     {value: 'us-west-2', label: 'United States (Oregon)'}
-// ];
+import {socketEmit} from '../containers/JoiningProvider/socket/emitters';
+import {useMeetingProviderState} from '../../shared';
 
 const JoinForm = () => {
 
     const [formState, setFormState] = React.useState({
         'userName': '',
     });
+
+    const {socket} = useMeetingProviderState();
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
         setFormState({
@@ -34,7 +20,7 @@ const JoinForm = () => {
 
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        SocketEmitters.subscribe(formState);
+        socketEmit(socket).subscribe(formState);
     };
 
     return <form id='join-meeting' noValidate autoComplete='off'>

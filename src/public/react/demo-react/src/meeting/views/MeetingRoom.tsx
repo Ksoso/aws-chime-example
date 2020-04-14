@@ -1,11 +1,16 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import './MeetingRoom.css';
-import {makeStyles} from '@material-ui/core/styles';
+import {createStyles, makeStyles} from '@material-ui/core/styles';
 import Toolbar from '../components/Toolbar';
-import SettingsDialog from '../components/SettingsDialog';
 import AttendeesList from '../components/AttendeesList';
+import VideoManager from '../containers/VideoManager';
+import {Box} from '@material-ui/core';
+import {useHistory} from 'react-router-dom';
+import routes from '../../routes';
+import MeetingAudio from '../components/MeetingAudio';
+import {useMeetingProviderState} from '../../shared';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => createStyles({
     root: {
         height: '100%',
         width: '100%',
@@ -14,24 +19,56 @@ const useStyles = makeStyles({
         position: 'absolute',
         top: '90vh',
         left: '42vw',
+        zIndex: 10,
+    },
+    videosContainer: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: theme.palette.primary.light,
+        display: 'flex',
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    videos: {
+        backgroundColor: theme.palette.divider,
+        width: '95%',
+        height: '90%',
+        padding: theme.spacing(5)
     },
     roster: {
         position: 'absolute',
         top: '25px',
         left: '25px',
+        zIndex: 10,
     }
-}, {name: 'MeetingRoom'});
+}), {name: 'MeetingRoom'});
 
 const MeetingRoom = () => {
     const classes = useStyles();
+    const history = useHistory();
 
-    const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
+    const {meetingManager} = useMeetingProviderState();
 
-    const handleToolbarClick = (prevActiveButtons: string[], newActiveButtons: string[]) => {
+    useEffect(() => {
+        meetingManager.startMeeting();
+        return () => {
+            meetingManager.leaveMeeting();
+        };
+    }, [meetingManager]);
+
+    const handleToolbarClick = async (prevActiveButtons: string[], newActiveButtons: string[]) => {
         const newActivatedButton = newActiveButtons.filter(btn => !prevActiveButtons.includes(btn)).pop();
         const newDeactivatedButton = prevActiveButtons.filter(btn => !newActiveButtons.includes(btn)).pop();
-        if ('settings' === newActivatedButton) {
-            setSettingsDialogOpen(true);
+        if ('endMeeting' === newActivatedButton) {
+            await meetingManager.endMeeting();
+            history.push(routes.ROOT);
+        } else if ('videoIn' === newActivatedButton) {
+            await meetingManager.startLocalVideo();
+        }
+        if ('videoIn' === newDeactivatedButton) {
+            await meetingManager.stopLocalVideo();
         }
         console.log('newActiveBtns', newActivatedButton);
         console.log('newdDeactivBtns', newDeactivatedButton);
@@ -50,12 +87,15 @@ const MeetingRoom = () => {
                 },
             ]}/>
         </div>
+        <div className={classes.videosContainer}>
+            <Box borderRadius={14} className={classes.videos}>
+                <VideoManager/>
+                <MeetingAudio meetingManager={meetingManager}/>
+            </Box>
+        </div>
         <div className={classes.toolbar}>
             <Toolbar onToolbarClick={handleToolbarClick}/>
         </div>
-        <SettingsDialog open={settingsDialogOpen} onClose={() => {
-            setSettingsDialogOpen(false);
-        }}/>
     </div>;
 };
 

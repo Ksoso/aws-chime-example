@@ -2,7 +2,7 @@ import React, {ChangeEvent, SetStateAction, useEffect} from 'react';
 import {ConsoleLogger, DefaultDeviceController, DeviceChangeObserver} from 'amazon-chime-sdk-js';
 import LogLevel from 'amazon-chime-sdk-js/build/logger/LogLevel';
 import {Grid, MenuItem, TextField} from '@material-ui/core';
-import MeetingManager from '../MeetingManager';
+import {useMeetingProviderState} from '../../shared';
 
 const deviceController = new DefaultDeviceController(new ConsoleLogger('SDK', LogLevel.INFO));
 
@@ -66,6 +66,7 @@ class DeviceChangeObserverImpl implements DeviceChangeObserver {
 
 const SettingsForm: React.FC = () => {
 
+    const {meetingManager} = useMeetingProviderState();
     const previewVideoRef = React.useRef<HTMLVideoElement>(null);
     const [audioInputs, setAudioInputs] = React.useState<DeviceInfo[]>([]);
     const [audioOutputs, setAudioOutputs] = React.useState<DeviceInfo[]>([]);
@@ -91,45 +92,55 @@ const SettingsForm: React.FC = () => {
 
     useEffect(() => {
         const deviceChangeObserver = new DeviceChangeObserverImpl(setAudioInputs, setAudioOutputs, setVideoInputs);
-        MeetingManager.addDeviceChangeObserver(deviceChangeObserver);
+        meetingManager.addDeviceChangeObserver(deviceChangeObserver);
 
         return () => {
-            MeetingManager.removeDeviceChangeObserver(deviceChangeObserver);
+            meetingManager.removeDeviceChangeObserver(deviceChangeObserver);
         };
-    }, []);
+    }, [meetingManager]);
+
+    useEffect(() => {
+        const previewNode = previewVideoRef.current;
+
+        return () => {
+            if (previewNode) {
+                meetingManager.stopPreviewVideo(previewNode);
+            }
+        };
+    }, [meetingManager]);
 
     useEffect(() => {
         const deviceId = audioInputs.length ? audioInputs[0].value : '';
         setFormState(state => ({...state, 'microphone': deviceId}));
         (async () => {
             if (deviceId) {
-                await MeetingManager.setDevice(audioInputs[0].original);
+                await meetingManager.setDevice(audioInputs[0].original);
             }
         })();
-    }, [audioInputs]);
+    }, [audioInputs, meetingManager]);
 
     useEffect(() => {
         const deviceId = audioOutputs.length ? audioOutputs[0].value : '';
         setFormState(state => ({...state, 'speakers': deviceId}));
         (async () => {
             if (deviceId) {
-                await MeetingManager.setDevice(audioOutputs[0].original);
+                await meetingManager.setDevice(audioOutputs[0].original);
             }
         })();
-    }, [audioOutputs]);
+    }, [audioOutputs, meetingManager]);
 
     useEffect(() => {
         const deviceId = videoInputs.length ? videoInputs[0].value : '';
         setFormState(state => ({...state, 'camera': deviceId}));
         (async () => {
             if (deviceId) {
-                await MeetingManager.setDevice(videoInputs[0].original);
+                await meetingManager.setDevice(videoInputs[0].original);
                 if (previewVideoRef.current) {
-                    await MeetingManager.startPreviewVideo(previewVideoRef.current);
+                    await meetingManager.startPreviewVideo(previewVideoRef.current);
                 }
             }
         })();
-    }, [videoInputs]);
+    }, [videoInputs, meetingManager]);
 
     const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const deviceType = e.target.name;
@@ -140,9 +151,9 @@ const SettingsForm: React.FC = () => {
         if ('videoQuality' !== deviceType) {
             const device = [...videoInputs, ...audioInputs, ...audioOutputs].find(d => d.value === deviceId);
             if (device) {
-                await MeetingManager.setDevice(device.original);
+                await meetingManager.setDevice(device.original);
                 if ('videoinput' === device.original.kind && previewVideoRef.current) {
-                    await MeetingManager.startPreviewVideo(previewVideoRef.current);
+                    meetingManager.startPreviewVideo(previewVideoRef.current);
                 }
             }
         }

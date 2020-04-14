@@ -1,22 +1,21 @@
 /**
  * Express Server file.
  *
- * created by Sean Maxwell Jan 21, 2019
  */
 
 import * as path from 'path';
 import * as express from 'express';
-import * as controllers from './controllers';
 import {Server as NodeHttp} from 'http';
-
-import {Server} from '@overnightjs/core';
-import {Logger} from '@overnightjs/logger';
+import * as cors from 'cors';
+import * as compression from 'compression';
 import {Socket} from 'socket.io';
 import {v4 as uuidV4} from 'uuid';
+import {meetingRouter} from './meeting';
+import {demoRouter} from './demo';
 
-class DemoServer extends Server {
+class Server {
 
-    private readonly SERVER_START_MSG = 'Demo server started on port: ';
+    private readonly SERVER_START_MSG = 'AWS Chime server started on port: ';
     private readonly DEV_MSG = 'Express Server is running in development mode. No front-end ' +
         'content is being served.';
 
@@ -29,28 +28,29 @@ class DemoServer extends Server {
         }
     } = {};
 
+    public app: express.Application;
+
     constructor() {
-        super(true);
+        this.app = express();
+
+        //enabling CORS
+        this.app.use(cors());
+        //support for application/json type post dat
         this.app.use(express.json());
+        //support for application/x-www-form-urlencoded post data
         this.app.use(express.urlencoded({extended: true}));
-        this.setupControllers();
+        //gzip compression
+        this.app.use(compression());
+        //adding routes
+        this.app.use('/api/v1/meetings', meetingRouter);
+        this.app.use('/api/v1/demo', demoRouter);
+
         // Point to front-end code
-        if (process.env.NODE_ENV !== 'production') {
+        if ('production' !== process.env.NODE_ENV) {
             this.app.get('*', (req, res) => res.send(this.DEV_MSG));
         } else {
             this.serveFrontEndProd();
         }
-    }
-
-    private setupControllers(): void {
-        const ctlrInstances = [];
-        for (const name in controllers) {
-            if (controllers.hasOwnProperty(name)) {
-                let Controller = (controllers as any)[name];
-                ctlrInstances.push(new Controller());
-            }
-        }
-        super.addControllers(ctlrInstances);
     }
 
     private serveFrontEndProd(): void {
@@ -65,10 +65,10 @@ class DemoServer extends Server {
     }
 
     private initSocket(): void {
-        Logger.Info('initializing socket');
+        console.info('initializing socket');
         const io = require('socket.io')(this.server);
         io.on('connect', (socket: Socket) => {
-            Logger.Info(`user connected: ${socket.id}`);
+            console.info(`user connected: ${socket.id}`);
 
             socket.on('subscribe', (data: any) => {
                 if (this.usersMap[socket.id]) {
@@ -115,10 +115,10 @@ class DemoServer extends Server {
 
     public start(port: number): void {
         this.server = this.app.listen(port, () => {
-            Logger.Imp(this.SERVER_START_MSG + port);
+            console.log(`${this.SERVER_START_MSG}${port}`);
         });
         this.initSocket();
     }
 }
 
-export default DemoServer;
+export default Server;

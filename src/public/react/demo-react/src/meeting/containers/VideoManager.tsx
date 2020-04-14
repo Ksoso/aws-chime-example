@@ -1,7 +1,7 @@
 import React, {useEffect, useReducer} from 'react';
 import VideoTile from '../components/VideoTile';
 import {Grid} from '@material-ui/core';
-import MeetingManager from '../meeting/MeetingManager';
+import {useMeetingProviderState} from '../../shared';
 
 enum ActionType {
     TileUpdated = 'TILE_UPDATED',
@@ -42,9 +42,9 @@ function reducer(state: State, {type, payload}: Action): State {
 
 const VideoManager: React.FC = () => {
     const [state, dispatch] = useReducer(reducer, {});
+    const {meetingManager} = useMeetingProviderState();
 
     const videoTileDidUpdate = (tileState: { isContent: boolean }) => {
-        console.log('Update!!', tileState.isContent);
         dispatch({type: ActionType.TileUpdated, payload: tileState});
     };
 
@@ -52,23 +52,21 @@ const VideoManager: React.FC = () => {
         dispatch({type: ActionType.TileDeleted, payload: tileId});
     };
 
-    const videoObservers = {videoTileDidUpdate, videoTileWasRemoved};
-
     useEffect(() => {
-        MeetingManager.addAudioVideoObserver(videoObservers);
+        const videoObservers = {videoTileDidUpdate, videoTileWasRemoved};
+
+        meetingManager.addAudioVideoObserver(videoObservers);
         return () => {
-            MeetingManager.removeMediaObserver(videoObservers);
+            meetingManager.removeMediaObserver(videoObservers);
         };
-    }, []);
+    }, [meetingManager]);
 
     const videos = Object.keys(state).map((tileId, idx) => {
         return <Grid item sm={4} key={idx}>
             <VideoTile isLocal={state[tileId].localTile} nameplate={'Attendee Id'}
-                       bindVideoTile={videoRef => MeetingManager.bindVideoTile(parseInt(tileId), videoRef)}/>
+                       bindVideoTile={videoRef => meetingManager.bindVideoTile(parseInt(tileId), videoRef)}/>
         </Grid>;
     });
-
-    console.log('videoManagerState', state);
 
     return <Grid container spacing={2}>{videos}</Grid>;
 };

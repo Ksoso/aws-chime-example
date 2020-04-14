@@ -12,27 +12,27 @@ import {
     List,
     Typography
 } from '@material-ui/core';
-import Socket from '../../Socket';
 import CallListItem from '../components/CallListItem';
-import MeetingManager from '../../meeting/MeetingManager';
 import {v4 as uuidV4} from 'uuid';
-import {SocketEmitters} from './JoiningProvider/socket/emitters';
+import {socketEmit} from './JoiningProvider/socket/emitters';
 import {Type} from './JoiningProvider/reducer';
 import {useHistory} from 'react-router-dom';
 import routes from '../../routes';
+import {useMeetingProviderState} from '../../shared';
 
 const UserCallList: React.FC = () => {
 
     const history = useHistory();
     const {activeUsers, callStatus} = useJoiningProviderState();
+    const {meetingManager, socket} = useMeetingProviderState();
     const dispatch = useJoiningProviderDispatcher();
     const [openCallDialog, setOpenCallDialog] = React.useState(false);
 
     const handleOnMakeCallClick = async (e, user) => {
         setOpenCallDialog(true);
-        const currentUser = activeUsers[Socket.socketId as string];
-        const meetingId = await MeetingManager.joinMeeting(uuidV4(), currentUser.uuid);
-        SocketEmitters.callTo(user.wsId, meetingId, currentUser);
+        const currentUser = activeUsers[socket.socketId as string];
+        const meetingId = await meetingManager.joinMeeting(uuidV4(), currentUser.uuid);
+        socketEmit(socket).callTo(user.wsId, meetingId, currentUser);
         dispatch({
             type: Type.SetCallStatus, callStatus: {
                 meetingId, recipient: user, status: 'connecting'
@@ -45,11 +45,11 @@ const UserCallList: React.FC = () => {
     };
 
     const handleCallCancel = async () => {
-        await MeetingManager.endMeeting();
+        await meetingManager.endMeeting();
         setOpenCallDialog(false);
         if (callStatus) {
             const {meetingId, recipient} = callStatus;
-            SocketEmitters.declineUserCall(recipient.wsId, meetingId, activeUsers[Socket.socketId as string]);
+            socketEmit(socket).declineUserCall(recipient.wsId, meetingId, activeUsers[socket.socketId as string]);
             dispatch({
                 type: Type.SetCallStatus,
                 callStatus: {...callStatus, status: 'rejected'}
@@ -61,9 +61,9 @@ const UserCallList: React.FC = () => {
         setOpenCallDialog(false);
         if (callStatus) {
             const {meetingId, recipient} = callStatus;
-            const currentUser = activeUsers[Socket.socketId as string];
-            await MeetingManager.joinMeeting(meetingId, currentUser.uuid);
-            SocketEmitters.acceptUserCall(recipient.wsId, meetingId, currentUser);
+            const currentUser = activeUsers[socket.socketId as string];
+            await meetingManager.joinMeeting(meetingId, currentUser.uuid);
+            socketEmit(socket).acceptUserCall(recipient.wsId, meetingId, currentUser);
             dispatch({
                 type: Type.SetCallStatus,
                 callStatus: {...callStatus, status: 'in-progress'}
@@ -92,7 +92,7 @@ const UserCallList: React.FC = () => {
                 {
                     Object.values(activeUsers)
                         .map((user) => <CallListItem key={user.wsId} user={user}
-                                                     isCurrentUser={user.wsId === Socket.socketId}
+                                                     isCurrentUser={user.wsId === socket.socketId}
                                                      onMakeCallClick={handleOnMakeCallClick}/>)
                 }
             </List>

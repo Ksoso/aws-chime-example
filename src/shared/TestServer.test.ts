@@ -5,8 +5,8 @@
  */
 
 import * as bodyParser from 'body-parser';
-import { Application } from 'express';
-import { Server } from '@overnightjs/core';
+import {Application} from 'express';
+import {Server} from '@overnightjs/core';
 
 class TestServer extends Server {
 

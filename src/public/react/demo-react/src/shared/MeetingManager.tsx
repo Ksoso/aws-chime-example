@@ -20,17 +20,19 @@ class MeetingManager {
     private audioVideo?: AudioVideoFacade;
     private title?: string;
 
-    async initializeMeetingSession(configuration: MeetingSessionConfiguration, clientConfiguration?: ClientConfiguration): Promise<any> {
-        const logger = new ConsoleLogger('DEV-SDK', LogLevel.DEBUG);
+    async initializeMeetingSession(configuration: MeetingSessionConfiguration): Promise<any> {
+        const logger = new ConsoleLogger('DEV-SDK', LogLevel.INFO);
         const deviceController = new DefaultDeviceController(logger);
         configuration.enableWebAudio = false;
         this.meetingSession = new DefaultMeetingSession(configuration, logger, deviceController);
         this.audioVideo = this.meetingSession.audioVideo;
+    }
 
-        if (clientConfiguration) {
-            await this.audioVideo.chooseAudioInputDevice(clientConfiguration.audioInputId);
-            await this.audioVideo.chooseAudioOutputDevice(clientConfiguration.audioOutputId);
-        }
+    private cleanUp() {
+        this.meetingSession = undefined;
+        this.audioVideo = undefined;
+        this.title = undefined;
+
     }
 
     addAudioVideoObserver(observer: AudioVideoObserver): void {
@@ -84,8 +86,12 @@ class MeetingManager {
         this.audioVideo?.stopLocalVideoTile();
     }
 
-    async joinMeeting(meetingId: string, userUuid: string, clientConfiguration?: ClientConfiguration): Promise<any> {
-        const joinResponse = await fetch('/meeting/join', {
+    public startMeeting() {
+        this.audioVideo?.start();
+    }
+
+    async joinMeeting(meetingId: string, userUuid: string): Promise<any> {
+        const joinResponse = await fetch('/meetings/join', {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -99,18 +105,16 @@ class MeetingManager {
         const json = await joinResponse.json();
         const data = await json;
 
-        this.title = data.JoinInfo.Title;
-        await this.initializeMeetingSession(
-            new MeetingSessionConfiguration(data.JoinInfo.Meeting, data.JoinInfo.Attendee), clientConfiguration
-        );
-        // this.audioVideo?.start();
+        this.title = data.meetingId;
+        await this.initializeMeetingSession(new MeetingSessionConfiguration(data.meeting, data.attendee));
         return this.title;
     }
 
     async endMeeting(): Promise<any> {
 
+        console.log('###############ENDING MEETING######################');
         if (this.title) {
-            await fetch(`/meeting/${encodeURIComponent(this.title)}`, {
+            await fetch(`/meetings/${encodeURIComponent(this.title)}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -120,6 +124,7 @@ class MeetingManager {
         }
 
         this.leaveMeeting();
+        this.cleanUp();
     }
 
     leaveMeeting(): void {
@@ -179,4 +184,4 @@ class MeetingManager {
     }
 }
 
-export default new MeetingManager();
+export default MeetingManager;

@@ -1,17 +1,13 @@
 /**
- * Start the server for development or production,
- * or run tests.
+ * Start the server for development or production or run tests.
  *
- * created by Sean Maxwell, 1/21/2019
  */
-
-import { Logger } from '@overnightjs/logger';
-import DemoServer from './DemoServer';
+import Server from './Server';
 
 // Start the server or run tests
 if (process.env.NODE_ENV !== 'testing') {
 
-    const server = new DemoServer();
+    const server = new Server();
     server.start(process.env.NODE_ENV === 'development' ? 3001 : 8081);
 
 } else {
@@ -31,9 +27,9 @@ if (process.env.NODE_ENV !== 'testing') {
 
     jasmine.onComplete((passed: boolean) => {
         if (passed) {
-            Logger.Info('All tests have passed :)');
+            console.info('All tests have passed :)');
         } else {
-            Logger.Err('At least one test has failed :(');
+            console.error('At least one test has failed :(');
         }
     });
 

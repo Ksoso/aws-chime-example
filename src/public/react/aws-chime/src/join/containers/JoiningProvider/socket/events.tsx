@@ -13,7 +13,6 @@ interface UserList {
 export default function bindSocketEvents(socket: Socket, dispatch: Dispatch<Action>) {
 
     socket.on(EVENTS.USER_LIST, (userList: UserList) => {
-        console.log('socket', socket, userList);
         dispatch({type: Type.SetActiveUsers, activeUsers: userList});
     });
 

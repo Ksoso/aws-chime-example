@@ -3,9 +3,10 @@ import {makeStyles} from '@material-ui/core/styles';
 import classNames from 'classnames';
 
 interface VideoTileProps {
-    isLocal: boolean,
+    isLocal: boolean;
+    tileId: number;
     nameplate: string;
-    bindVideoTile: (videoRef: any) => void;
+    bindVideoTile: (tileId: number, videoRef: HTMLVideoElement) => void;
 }
 
 const useStyles = makeStyles({
@@ -18,7 +19,7 @@ const useStyles = makeStyles({
     }
 }, {name: 'videoTile'});
 
-const VideoTile: React.FC<VideoTileProps> = ({bindVideoTile, nameplate, isLocal = false}) => {
+const VideoTile: React.FC<VideoTileProps> = ({bindVideoTile, tileId, nameplate, isLocal = false}) => {
     const classes = useStyles();
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -26,10 +27,10 @@ const VideoTile: React.FC<VideoTileProps> = ({bindVideoTile, nameplate, isLocal 
         if (!videoRef.current) {
             return;
         }
-        bindVideoTile(videoRef.current);
-    }, [videoRef, bindVideoTile]);
+        bindVideoTile(tileId, videoRef.current);
+    }, [videoRef, tileId, bindVideoTile]);
 
     return <video className={classNames(classes.root, {[classes.local]: isLocal})} ref={videoRef}/>;
 };
 
-export default VideoTile;
+export default React.memo<VideoTileProps>(VideoTile);

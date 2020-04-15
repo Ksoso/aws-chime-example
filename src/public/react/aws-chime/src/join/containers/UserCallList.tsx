@@ -7,7 +7,6 @@ import {
     DialogContent,
     DialogTitle,
     Divider,
-    Grid,
     LinearProgress,
     List,
     Typography
@@ -29,15 +28,16 @@ const UserCallList: React.FC = () => {
     const [openCallDialog, setOpenCallDialog] = React.useState(false);
 
     const handleOnMakeCallClick = async (e, user) => {
-        setOpenCallDialog(true);
-        const currentUser = activeUsers[socket.socketId as string];
-        const meetingId = await meetingManager.joinMeeting(uuidV4(), currentUser.uuid);
-        socketEmit(socket).callTo(user.wsId, meetingId, currentUser);
+        setOpenCallDialog(() => true);
+        let meetingId = uuidV4();
         dispatch({
             type: Type.SetCallStatus, callStatus: {
                 meetingId, recipient: user, status: 'connecting'
             }
         });
+        const currentUser = activeUsers[socket.socketId as string];
+        meetingId = await meetingManager.joinMeeting(meetingId, currentUser.uuid);
+        socketEmit(socket).callTo(user.wsId, meetingId, currentUser);
     };
 
     const handleCallDialogClose = () => {
@@ -87,16 +87,14 @@ const UserCallList: React.FC = () => {
     return <div>
         <Typography component='h1' variant='h4'>Video call phone book</Typography>
         <Divider/>
-        <Grid item xs={6}>
-            <List style={{width: '100%'}}>
-                {
-                    Object.values(activeUsers)
-                        .map((user) => <CallListItem key={user.wsId} user={user}
-                                                     isCurrentUser={user.wsId === socket.socketId}
-                                                     onMakeCallClick={handleOnMakeCallClick}/>)
-                }
-            </List>
-        </Grid>
+        <List style={{width: '100%'}}>
+            {
+                Object.values(activeUsers)
+                    .map((user) => <CallListItem key={user.wsId} user={user}
+                                                 isCurrentUser={user.wsId === socket.socketId}
+                                                 onMakeCallClick={handleOnMakeCallClick}/>)
+            }
+        </List>
         {openCallDialog && (isCallingTo || isIncomingCall) &&
         <Dialog open={openCallDialog} onClose={handleCallDialogClose}>
             <DialogTitle>{isCallingTo ? `Calling to ${callStatus?.recipient.userName}`

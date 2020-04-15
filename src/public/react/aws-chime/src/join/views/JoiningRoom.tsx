@@ -7,7 +7,7 @@ import UserCallList from '../containers/UserCallList';
 
 const useStyles = makeStyles(theme => createStyles({
     root: {
-        marginTop: theme.spacing(8),
+        paddingTop: theme.spacing(8),
     },
     leftBox: {
         borderRight: `1px solid ${theme.palette.divider}`

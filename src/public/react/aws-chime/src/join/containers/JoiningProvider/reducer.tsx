@@ -39,7 +39,6 @@ export type Action =
     | { type: Type.SetCallStatus, callStatus?: CallStatus }
 
 export function reducer(state: State, action: Action): State {
-    console.log('action', action);
     switch (action.type) {
         case Type.WsConnected:
             return {

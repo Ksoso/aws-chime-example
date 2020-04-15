@@ -7,6 +7,7 @@ import {createMuiTheme, ThemeProvider} from '@material-ui/core';
 import JoiningRoom from './join/views/JoiningRoom';
 import Settings from './meeting/views/Settings';
 import MeetingProvider from './shared';
+import AWSChimeEventsHandlerProvider from './meeting/containers/AWSChimeEventsHandler';
 
 const theme = createMuiTheme();
 
@@ -19,10 +20,12 @@ const App: React.FC = () => {
                 <MeetingProvider>
                     <Router>
                         <Switch>
-                            <Route path={routes.ROOT}>
-                                <Route path={routes.ROOT} exact component={JoiningRoom}/>
-                                <Route path={routes.MEETING} component={MeetingRoom}/>
-                                <Route path={routes.SETTINGS} component={Settings}/>
+                            <Route path={routes.ROOT} exact component={JoiningRoom}/>
+                            <Route path={[routes.MEETING, routes.SETTINGS]}>
+                                <AWSChimeEventsHandlerProvider>
+                                    <Route path={routes.MEETING} component={MeetingRoom}/>
+                                    <Route path={routes.SETTINGS} component={Settings}/>
+                                </AWSChimeEventsHandlerProvider>
                             </Route>
                         </Switch>
                     </Router>

@@ -3,8 +3,8 @@ import Socket from './Socket';
 import MeetingManager from './MeetingManager';
 
 interface MeetingProviderState {
-    socket: Socket,
-    meetingManager: MeetingManager
+    socket: Socket;
+    meetingManager: MeetingManager;
 }
 
 const MeetingProviderContext = createContext<MeetingProviderState | null>(null);

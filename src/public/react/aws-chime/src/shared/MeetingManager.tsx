@@ -2,6 +2,7 @@ import {
     AudioVideoFacade,
     AudioVideoObserver,
     ConsoleLogger,
+    DefaultActiveSpeakerPolicy,
     DefaultDeviceController,
     DefaultMeetingSession,
     DeviceChangeObserver,
@@ -9,19 +10,13 @@ import {
     MeetingSessionConfiguration
 } from 'amazon-chime-sdk-js';
 
-export interface ClientConfiguration {
-    audioInputId: string,
-    audioOutputId: string,
-    videoInputId: string
-}
-
 class MeetingManager {
     private meetingSession?: DefaultMeetingSession;
     private audioVideo?: AudioVideoFacade;
     private title?: string;
 
     async initializeMeetingSession(configuration: MeetingSessionConfiguration): Promise<any> {
-        const logger = new ConsoleLogger('DEV-SDK', LogLevel.INFO);
+        const logger = new ConsoleLogger('DEV-SDK', LogLevel.ERROR);
         const deviceController = new DefaultDeviceController(logger);
         configuration.enableWebAudio = false;
         this.meetingSession = new DefaultMeetingSession(configuration, logger, deviceController);
@@ -32,7 +27,34 @@ class MeetingManager {
         this.meetingSession = undefined;
         this.audioVideo = undefined;
         this.title = undefined;
+    }
 
+    setDeviceLabelTrigger(labelTrigger: () => Promise<MediaStream>) {
+        this.audioVideo?.setDeviceLabelTrigger(labelTrigger);
+    }
+
+    meetingInProgress() {
+        return Boolean(this.title);
+    }
+
+    subscribeToAttendeeIdPresence(subscriber: (attendeeId: string, present: boolean) => void) {
+        this.audioVideo?.realtimeSubscribeToAttendeeIdPresence(subscriber);
+    }
+
+    subscribeToAttendeeVolumeIndicator(attendeeId: string, subscriber: (attendeeId: string,
+                                                                        volume: number | null,
+                                                                        muted: boolean | null,
+                                                                        signalStrength: number | null) => void) {
+        this.audioVideo?.realtimeSubscribeToVolumeIndicator(attendeeId, subscriber);
+    }
+
+    subscribeToActiveSpeakerDetector(subscriber: (attendeeIds: string[]) => void,
+                                     scoresCallback: (scores: { [attendeeId: string]: number }) => void,
+                                     scoresCallbackIntervalMs: number = 100) {
+        this.audioVideo?.subscribeToActiveSpeakerDetector(
+            new DefaultActiveSpeakerPolicy(),
+            subscriber, scoresCallback, scoresCallbackIntervalMs
+        );
     }
 
     addAudioVideoObserver(observer: AudioVideoObserver): void {
@@ -69,9 +91,9 @@ class MeetingManager {
         this.audioVideo.removeDeviceChangeObserver(observer);
     }
 
-    bindVideoTile(id: number, videoEl: HTMLVideoElement): void {
+    bindVideoTile = (id: number, videoEl: HTMLVideoElement): void => {
         this.audioVideo?.bindVideoElement(id, videoEl);
-    }
+    };
 
     async startLocalVideo(): Promise<void> {
         if (this.audioVideo) {
@@ -112,7 +134,6 @@ class MeetingManager {
 
     async endMeeting(): Promise<any> {
 
-        console.log('###############ENDING MEETING######################');
         if (this.title) {
             await fetch(`/meetings/${encodeURIComponent(this.title)}`, {
                 headers: {

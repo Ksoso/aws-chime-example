@@ -14,13 +14,13 @@ tsc --sourceMap false
 mkdir -p ./build/public/react/
 
 # Navigate to the react directory
-cd ./src/public/react/demo-react
+cd ./src/public/react/aws-chime
 
 # Build React code
 npm run build
 
 # Rename the folder
-mv build demo-react
+mv build aws-chime
 
 # Move the contains to the build/ dir
-mv demo-react ../../../../build/public/react/
+mv aws-chime ../../../../build/public/react/

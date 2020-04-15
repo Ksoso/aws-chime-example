@@ -48,16 +48,19 @@ class DeviceChangeObserverImpl implements DeviceChangeObserver {
     }
 
     audioInputsChanged(freshAudioInputDeviceList?: MediaDeviceInfo[]): void {
+        console.log('audio changed', freshAudioInputDeviceList);
         this.dispatchForAudioInput(freshAudioInputDeviceList ?
             freshAudioInputDeviceList.map(mapToSelectOption) : []);
     }
 
     audioOutputsChanged(freshAudioOutputDeviceList?: MediaDeviceInfo[]): void {
+        console.log('audio output changed', freshAudioOutputDeviceList);
         this.dispatchForAudioOutput(freshAudioOutputDeviceList ?
             freshAudioOutputDeviceList.map(mapToSelectOption) : []);
     }
 
     videoInputsChanged(freshVideoInputDeviceList?: MediaDeviceInfo[]): void {
+        console.log('audio video changed', freshVideoInputDeviceList);
         this.dispatchForVideoInput(freshVideoInputDeviceList ?
             freshVideoInputDeviceList.map(mapToSelectOption) : []);
     }
@@ -136,7 +139,11 @@ const SettingsForm: React.FC = () => {
             if (deviceId) {
                 await meetingManager.setDevice(videoInputs[0].original);
                 if (previewVideoRef.current) {
-                    await meetingManager.startPreviewVideo(previewVideoRef.current);
+                    meetingManager.startPreviewVideo(previewVideoRef.current);
+                }
+            } else {
+                if (previewVideoRef.current) {
+                    meetingManager.stopPreviewVideo(previewVideoRef.current);
                 }
             }
         })();
@@ -145,9 +152,9 @@ const SettingsForm: React.FC = () => {
     const handleChange = async (e: ChangeEvent<HTMLInputElement>) => {
         const deviceType = e.target.name;
         const deviceId = e.target.value;
-        setFormState({
-            ...formState, [deviceType]: deviceId
-        });
+        setFormState((state) => ({
+            ...state, [deviceType]: deviceId
+        }));
         if ('videoQuality' !== deviceType) {
             const device = [...videoInputs, ...audioInputs, ...audioOutputs].find(d => d.value === deviceId);
             if (device) {
@@ -160,10 +167,10 @@ const SettingsForm: React.FC = () => {
     };
 
     return <Grid container>
-        <Grid item xs={6}>
-            <video style={{height: '400px', width: '100%'}} ref={previewVideoRef}/>
+        <Grid item xs={12}>
+            <video style={{width: '100%'}} ref={previewVideoRef}/>
         </Grid>
-        <Grid item xs={6}>
+        <Grid item xs={12}>
             <form id='form-devices'>
                 <TextField select label='Select audio input' name='microphone'
                            value={formState.microphone}

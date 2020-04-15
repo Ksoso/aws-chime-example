@@ -2,13 +2,13 @@ import React, {useEffect} from 'react';
 import './MeetingRoom.css';
 import {createStyles, makeStyles} from '@material-ui/core/styles';
 import Toolbar from '../components/Toolbar';
-import AttendeesList from '../components/AttendeesList';
 import VideoManager from '../containers/VideoManager';
 import {Box} from '@material-ui/core';
 import {useHistory} from 'react-router-dom';
 import routes from '../../routes';
 import MeetingAudio from '../components/MeetingAudio';
 import {useMeetingProviderState} from '../../shared';
+import Roster from '../containers/Roster';
 
 const useStyles = makeStyles(theme => createStyles({
     root: {
@@ -50,6 +50,7 @@ const MeetingRoom = () => {
     const history = useHistory();
 
     const {meetingManager} = useMeetingProviderState();
+    const [isAudio, setIsAudio] = React.useState(true);
 
     useEffect(() => {
         meetingManager.startMeeting();
@@ -61,36 +62,40 @@ const MeetingRoom = () => {
     const handleToolbarClick = async (prevActiveButtons: string[], newActiveButtons: string[]) => {
         const newActivatedButton = newActiveButtons.filter(btn => !prevActiveButtons.includes(btn)).pop();
         const newDeactivatedButton = prevActiveButtons.filter(btn => !newActiveButtons.includes(btn)).pop();
+        //Active buttons handlers
         if ('endMeeting' === newActivatedButton) {
             await meetingManager.endMeeting();
             history.push(routes.ROOT);
         } else if ('videoIn' === newActivatedButton) {
             await meetingManager.startLocalVideo();
+        } else if ('leaveMeeting' === newActivatedButton) {
+            meetingManager.leaveMeeting();
+            history.push(routes.ROOT);
+        } else if ('audioOut' === newActivatedButton) {
+            setIsAudio(true);
+        } else if ('audioIn' === newActivatedButton) {
+            meetingManager.unmuteLocalAudio();
         }
+
+        //Deactivated buttons handlers
         if ('videoIn' === newDeactivatedButton) {
             await meetingManager.stopLocalVideo();
+        } else if ('audioOut' === newDeactivatedButton) {
+            setIsAudio(false);
+        } else if ('audioIn' === newDeactivatedButton) {
+            meetingManager.muteLocalAudio();
         }
-        console.log('newActiveBtns', newActivatedButton);
-        console.log('newdDeactivBtns', newDeactivatedButton);
+
     };
 
     return <div className={classes.root}>
         <div className={classes.roster}>
-            <AttendeesList attendees={[
-                {
-                    userName: 'Test user 1',
-                    isTalking: true
-                },
-                {
-                    userName: 'Test user 2',
-                    isTalking: false
-                },
-            ]}/>
+            <Roster/>
         </div>
         <div className={classes.videosContainer}>
             <Box borderRadius={14} className={classes.videos}>
                 <VideoManager/>
-                <MeetingAudio meetingManager={meetingManager}/>
+                {isAudio && <MeetingAudio meetingManager={meetingManager}/>}
             </Box>
         </div>
         <div className={classes.toolbar}>

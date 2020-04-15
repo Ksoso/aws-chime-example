@@ -1,14 +1,15 @@
 import {BaseRouteHandler} from '../../shared/BaseRouteHandler';
 import * as express from 'express';
-import {MeetingRepo} from '../repos/MeetingRepo';
+import {MeetingRepoImpl} from '../repos/MeetingRepoImpl';
 import {Chime} from 'aws-sdk';
+import {MeetingRepo} from '../repos/MeetingRepo.interface';
 
 export class AllMeetings extends BaseRouteHandler {
 
     private meetingRepo: MeetingRepo;
     private chime: Chime;
 
-    constructor(meetingRepo: MeetingRepo, chime: Chime) {
+    constructor(meetingRepo: MeetingRepoImpl, chime: Chime) {
         super();
         this.meetingRepo = meetingRepo;
         this.chime = chime;

@@ -1,17 +1,13 @@
-/**
- * Express Server file.
- *
- */
-
 import * as path from 'path';
 import * as express from 'express';
 import {Server as NodeHttp} from 'http';
 import * as cors from 'cors';
 import * as compression from 'compression';
 import {Socket} from 'socket.io';
-import {v4 as uuidV4} from 'uuid';
 import {meetingRouter} from './meeting';
 import {demoRouter} from './demo';
+import {UserSocketHandler} from './meeting/socket';
+import {userRepo} from './meeting/repos';
 
 class Server {
 
@@ -65,47 +61,9 @@ class Server {
     }
 
     private initSocket(): void {
-        console.info('initializing socket');
         const io = require('socket.io')(this.server);
         io.on('connect', (socket: Socket) => {
-            console.info(`user connected: ${socket.id}`);
-
-            socket.on('subscribe', (data: any) => {
-                if (this.usersMap[socket.id]) {
-                    this.usersMap[socket.id].userName = data.userName;
-                } else {
-                    this.usersMap[socket.id] = {
-                        wsId: socket.id,
-                        userName: data.userName,
-                        uuid: uuidV4(),
-                    };
-                }
-                io.emit('userList', this.usersMap, socket.id);
-            });
-
-            socket.on('callToUser', (data: any) => {
-                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
-                    meetingId: data.meetingId, sender: data.sender, status: 'incoming'
-                });
-            });
-
-            socket.on('acceptUserCall', (data: any) => {
-                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
-                    meetingId: data.meetingId, sender: data.sender, status: 'in-progress'
-                });
-            });
-
-            socket.on('declineUserCall', (data: any) => {
-                socket.broadcast.to(data.recipientWsId).emit('callStatusChange', {
-                    meetingId: data.meetingId, sender: data.sender, status: 'rejected'
-                });
-            });
-
-            socket.on('disconnect', () => {
-                delete this.usersMap[socket.id];
-                io.emit('exit', this.usersMap);
-            });
-
+            new UserSocketHandler(userRepo, socket, io).init();
         });
     }
 

@@ -16,23 +16,7 @@ interface DeviceFormState {
     microphone: string;
     speakers: string;
     camera: string;
-    videoQuality: string;
 }
-
-const videoQuality = [
-    {
-        value: '360p',
-        label: '360p (nHD) @ 15 fps (600 Kbps max)'
-    },
-    {
-        value: '540p',
-        label: '540p (qHD) @ 15 fps (1.4 Mbps max)'
-    },
-    {
-        value: '720p',
-        label: '720p (HD) @ 15 fps (1.4 Mbps max)'
-    }
-];
 
 const mapToSelectOption = (mediaDeviceInfo: MediaDeviceInfo, idx: number): DeviceInfo => ({
     label: mediaDeviceInfo.label || `device ${idx + 1}`,
@@ -48,19 +32,16 @@ class DeviceChangeObserverImpl implements DeviceChangeObserver {
     }
 
     audioInputsChanged(freshAudioInputDeviceList?: MediaDeviceInfo[]): void {
-        console.log('audio changed', freshAudioInputDeviceList);
         this.dispatchForAudioInput(freshAudioInputDeviceList ?
             freshAudioInputDeviceList.map(mapToSelectOption) : []);
     }
 
     audioOutputsChanged(freshAudioOutputDeviceList?: MediaDeviceInfo[]): void {
-        console.log('audio output changed', freshAudioOutputDeviceList);
         this.dispatchForAudioOutput(freshAudioOutputDeviceList ?
             freshAudioOutputDeviceList.map(mapToSelectOption) : []);
     }
 
     videoInputsChanged(freshVideoInputDeviceList?: MediaDeviceInfo[]): void {
-        console.log('audio video changed', freshVideoInputDeviceList);
         this.dispatchForVideoInput(freshVideoInputDeviceList ?
             freshVideoInputDeviceList.map(mapToSelectOption) : []);
     }
@@ -76,7 +57,7 @@ const SettingsForm: React.FC = () => {
     const [videoInputs, setVideoInputs] = React.useState<DeviceInfo[]>([]);
 
     const [formState, setFormState] = React.useState<DeviceFormState>({
-        microphone: '', speakers: '', camera: '', videoQuality: '540p'
+        microphone: '', speakers: '', camera: ''
     });
 
     useEffect(() => {
@@ -155,18 +136,16 @@ const SettingsForm: React.FC = () => {
         setFormState((state) => ({
             ...state, [deviceType]: deviceId
         }));
-        if ('videoQuality' !== deviceType) {
-            const device = [...videoInputs, ...audioInputs, ...audioOutputs].find(d => d.value === deviceId);
-            if (device) {
-                await meetingManager.setDevice(device.original);
-                if ('videoinput' === device.original.kind && previewVideoRef.current) {
-                    meetingManager.startPreviewVideo(previewVideoRef.current);
-                }
+        const device = [...videoInputs, ...audioInputs, ...audioOutputs].find(d => d.value === deviceId);
+        if (device) {
+            await meetingManager.setDevice(device.original);
+            if ('videoinput' === device.original.kind && previewVideoRef.current) {
+                meetingManager.startPreviewVideo(previewVideoRef.current);
             }
         }
     };
 
-    return <Grid container>
+    return <Grid container spacing={2}>
         <Grid item xs={12}>
             <video style={{width: '100%'}} ref={previewVideoRef}/>
         </Grid>
@@ -198,17 +177,6 @@ const SettingsForm: React.FC = () => {
                            onChange={handleChange} fullWidth>
                     {
                         videoInputs.map(({label, value}) => {
-                            return <MenuItem key={value} value={value}>
-                                {label}
-                            </MenuItem>;
-                        })
-                    }
-                </TextField>
-                <TextField select label='Select video quality' name='videoQuality'
-                           value={formState.videoQuality}
-                           onChange={handleChange} fullWidth>
-                    {
-                        videoQuality.map(({label, value}) => {
                             return <MenuItem key={value} value={value}>
                                 {label}
                             </MenuItem>;

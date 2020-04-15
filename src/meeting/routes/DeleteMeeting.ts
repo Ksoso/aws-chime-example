@@ -1,15 +1,16 @@
 import {BaseRouteHandler} from '../../shared/BaseRouteHandler';
 import * as express from 'express';
-import {MeetingRepo} from '../repos/MeetingRepo';
+import {MeetingRepoImpl} from '../repos/MeetingRepoImpl';
 import {Chime} from 'aws-sdk';
 import {NO_CONTENT} from 'http-status-codes';
+import {MeetingRepo} from '../repos/MeetingRepo.interface';
 
 export class DeleteMeeting extends BaseRouteHandler {
 
     private meetingRepo: MeetingRepo;
     private chime: Chime;
 
-    constructor(meetingRepo: MeetingRepo, chime: Chime) {
+    constructor(meetingRepo: MeetingRepoImpl, chime: Chime) {
         super();
         this.meetingRepo = meetingRepo;
         this.chime = chime;
@@ -20,6 +21,7 @@ export class DeleteMeeting extends BaseRouteHandler {
         const meeting = this.meetingRepo.get(meetingId);
         if (meeting && meeting.MeetingId) {
             await this.chime.deleteMeeting({MeetingId: meeting.MeetingId}).promise();
+            this.meetingRepo.deleteMeeting(meetingId);
             res.sendStatus(NO_CONTENT);
         } else {
             this.fail(res, `Meeting with meetingId: ${meetingId} not found`);

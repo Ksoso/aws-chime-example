@@ -4,25 +4,26 @@ import MeetingManager from '../../../shared/MeetingManager';
 
 export default class AttendeeEventsWatcher {
 
+    private attendeeId?: string;
+    private attendeeIdToUsername: { [key: string]: string } = {};
+
     constructor(readonly dispatch: React.Dispatch<SetStateAction<RosterState>>, readonly meetingManager: MeetingManager) {
     }
 
     watch() {
-        this.meetingManager.subscribeToAttendeeIdPresence((attendeeId: string, present: boolean) => {
-            this.subscribeToAttendeeIdPresence(attendeeId, present);
-        });
-        this.meetingManager.subscribeToActiveSpeakerDetector((attendeeIds: string[]) => {
-            this.subscribeToActiveSpeakerDetector(attendeeIds);
-        }, () => this.scoresCallback(), 200);
+        this.meetingManager.subscribeToAttendeeIdPresence(this.subscribeToAttendeeIdPresence);
+        this.meetingManager.subscribeToActiveSpeakerDetector(this.subscribeToActiveSpeakerDetector);
     }
 
-    private scoresCallback() {
-        this.dispatch(prevState => {
-            return {...prevState, version: ++prevState.version};
-        });
+    unWatch() {
+        this.meetingManager.unsubscribeToAttendeeIdPresence(this.subscribeToAttendeeIdPresence);
+        this.meetingManager.unsubscribeFromActiveSpeakerDetector(this.subscribeToActiveSpeakerDetector);
+        if (this.attendeeId) {
+            this.meetingManager.unsubscribeFromAttendeeVolumeIndicator(this.attendeeId);
+        }
     }
 
-    private subscribeToActiveSpeakerDetector(attendeeIds: string[]) {
+    private subscribeToActiveSpeakerDetector = (attendeeIds: string[]) => {
         this.dispatch(prevState => {
 
             const newAttendees = {...prevState.attendees};
@@ -39,11 +40,19 @@ export default class AttendeeEventsWatcher {
 
             return {...prevState, attendees: newAttendees};
         });
-    }
+    };
 
-
-    private subscribeToAttendeeIdPresence(attendeeId: string, present: boolean): void {
+    private subscribeToAttendeeIdPresence = async (attendeeId: string, present: boolean): Promise<void> => {
+        this.attendeeId = attendeeId;
         const self = this;
+
+        if (present && !this.attendeeIdToUsername[attendeeId]) {
+            const userName = await this.meetingManager.getAttendee(attendeeId);
+            if (userName) {
+                this.attendeeIdToUsername[attendeeId] = userName;
+            }
+        }
+
         this.dispatch(prevState => {
             if (!present) {
                 const {[attendeeId]: omit, ...rest} = prevState.attendees;
@@ -55,13 +64,16 @@ export default class AttendeeEventsWatcher {
                 });
             return prevState;
         });
-    }
+    };
 
-    private async subscribeToVolumeIndicator(attendeeId: string, volume: number | null, muted: boolean | null, signalStrength: number | null) {
+    private subscribeToVolumeIndicator = (attendeeId: string, volume: number | null, muted: boolean | null, signalStrength: number | null) => {
         this.dispatch(prevState => {
             const newAttendees = {...prevState.attendees};
             if (!newAttendees[attendeeId]) {
-                newAttendees[attendeeId] = {name: attendeeId, active: false};
+                newAttendees[attendeeId] = {
+                    name: this.attendeeIdToUsername[attendeeId] ? this.attendeeIdToUsername[attendeeId] : attendeeId,
+                    active: false
+                };
             }
             if (volume !== null) {
                 newAttendees[attendeeId].volume = Math.round(volume * 100);
@@ -75,7 +87,7 @@ export default class AttendeeEventsWatcher {
 
             return {...prevState, attendees: newAttendees};
         });
-    }
+    };
 }
 
 

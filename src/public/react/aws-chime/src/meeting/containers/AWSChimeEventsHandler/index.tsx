@@ -62,6 +62,10 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
     useEffect(() => {
         const realtimeAttendeeWatcher = new AttendeeEventsWatcher(setRoster, meetingManager);
         realtimeAttendeeWatcher.watch();
+
+        return () => {
+            realtimeAttendeeWatcher.unWatch();
+        };
     }, [meetingManager]);
 
     useEffect(() => {
@@ -70,8 +74,7 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
         });
     }, [meetingManager]);
 
-    const openDialog = video.status === MeetingSessionStatusCode.AudioCallEnded
-        || video.status === MeetingSessionStatusCode.Left;
+    const openDialog = video.status === MeetingSessionStatusCode.AudioCallEnded;
 
     const awsState: AWSChimeEventHandlersState = {video, roster};
     return <AWSChimeProviderProviderState.Provider value={awsState}>

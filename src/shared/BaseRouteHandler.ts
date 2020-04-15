@@ -1,5 +1,5 @@
 import * as express from 'express';
-import {BAD_REQUEST, INTERNAL_SERVER_ERROR, OK} from 'http-status-codes';
+import {BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND, OK} from 'http-status-codes';
 
 export abstract class BaseRouteHandler {
 
@@ -29,6 +29,10 @@ export abstract class BaseRouteHandler {
 
     public badRequest(res: express.Response, message: string) {
         return BaseRouteHandler.jsonResponse(res, BAD_REQUEST, 'Bad request');
+    }
+
+    public notFound(res: express.Response, message?: string) {
+        return BaseRouteHandler.jsonResponse(res, NOT_FOUND, message ? message : 'Not found');
     }
 
     public fail(res: express.Response, error: Error | string) {

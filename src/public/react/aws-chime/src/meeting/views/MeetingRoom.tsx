@@ -53,16 +53,20 @@ const MeetingRoom = () => {
     const [isAudio, setIsAudio] = React.useState(true);
 
     useEffect(() => {
-        meetingManager.startMeeting();
+        (async () => {
+            if (!await meetingManager.startMeeting()) {
+                history.push(routes.ROOT);
+            }
+        })();
         return () => {
             meetingManager.leaveMeeting();
         };
-    }, [meetingManager]);
+    }, [meetingManager, history]);
 
     const handleToolbarClick = async (prevActiveButtons: string[], newActiveButtons: string[]) => {
         const newActivatedButton = newActiveButtons.filter(btn => !prevActiveButtons.includes(btn)).pop();
         const newDeactivatedButton = prevActiveButtons.filter(btn => !newActiveButtons.includes(btn)).pop();
-        //Active buttons handlers
+        //Active buttons handler
         if ('endMeeting' === newActivatedButton) {
             await meetingManager.endMeeting();
             history.push(routes.ROOT);
@@ -70,7 +74,7 @@ const MeetingRoom = () => {
             await meetingManager.startLocalVideo();
         } else if ('leaveMeeting' === newActivatedButton) {
             meetingManager.leaveMeeting();
-            history.push(routes.ROOT);
+            history.push(routes.SETTINGS);
         } else if ('audioOut' === newActivatedButton) {
             setIsAudio(true);
         } else if ('audioIn' === newActivatedButton) {

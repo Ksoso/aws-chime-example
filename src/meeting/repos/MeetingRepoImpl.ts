@@ -1,10 +1,11 @@
 import {Meeting} from 'aws-sdk/clients/chime';
+import {MeetingRepo} from './MeetingRepo.interface';
 
 interface MeetingsCache {
     [key: string]: Meeting
 }
 
-export class MeetingRepo {
+export class MeetingRepoImpl implements MeetingRepo {
 
     private meetingsCache: MeetingsCache = {};
 
@@ -21,11 +22,11 @@ export class MeetingRepo {
         return meeting;
     }
 
-    public hasMeeting(meetingId: string): boolean {
+    public exist(meetingId: string): boolean {
         return Boolean(this.meetingsCache[meetingId]);
     }
 
-    get(meetingId: string): Meeting {
+    public get(meetingId: string): Meeting {
         return this.meetingsCache[meetingId];
     }
 }

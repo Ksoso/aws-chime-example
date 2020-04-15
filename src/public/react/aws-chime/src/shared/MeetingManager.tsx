@@ -41,6 +41,10 @@ class MeetingManager {
         this.audioVideo?.realtimeSubscribeToAttendeeIdPresence(subscriber);
     }
 
+    unsubscribeToAttendeeIdPresence(subscriber: (attendeeId: string, present: boolean) => void) {
+        this.audioVideo?.realtimeUnsubscribeToAttendeeIdPresence(subscriber);
+    }
+
     subscribeToAttendeeVolumeIndicator(attendeeId: string, subscriber: (attendeeId: string,
                                                                         volume: number | null,
                                                                         muted: boolean | null,
@@ -48,13 +52,21 @@ class MeetingManager {
         this.audioVideo?.realtimeSubscribeToVolumeIndicator(attendeeId, subscriber);
     }
 
+    unsubscribeFromAttendeeVolumeIndicator(attendeeId: string) {
+        this.audioVideo?.realtimeUnsubscribeFromVolumeIndicator(attendeeId);
+    }
+
     subscribeToActiveSpeakerDetector(subscriber: (attendeeIds: string[]) => void,
-                                     scoresCallback: (scores: { [attendeeId: string]: number }) => void,
-                                     scoresCallbackIntervalMs: number = 100) {
+                                     scoresCallback?: (scores: { [attendeeId: string]: number }) => void,
+                                     scoresCallbackIntervalMs?: number) {
         this.audioVideo?.subscribeToActiveSpeakerDetector(
             new DefaultActiveSpeakerPolicy(),
             subscriber, scoresCallback, scoresCallbackIntervalMs
         );
+    }
+
+    unsubscribeFromActiveSpeakerDetector(subscriber: (attendeeIds: string[]) => void) {
+        this.audioVideo?.unsubscribeFromActiveSpeakerDetector(subscriber);
     }
 
     addAudioVideoObserver(observer: AudioVideoObserver): void {
@@ -108,8 +120,25 @@ class MeetingManager {
         this.audioVideo?.stopLocalVideoTile();
     }
 
-    public startMeeting() {
-        this.audioVideo?.start();
+    public async startMeeting(): Promise<boolean> {
+        if (this.title) {
+            const joinResponse = await fetch(`/meetings/exist/${encodeURIComponent(this.title)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'GET',
+            });
+
+            const json = await joinResponse.json();
+            const data = await json;
+
+            if (data.exist) {
+                this.audioVideo?.start();
+                return true;
+            }
+        }
+        return false;
     }
 
     async joinMeeting(meetingId: string, userUuid: string): Promise<any> {
@@ -152,15 +181,22 @@ class MeetingManager {
         this.audioVideo?.stop();
     }
 
-    // async getAttendee(attendeeId: string): Promise<string> {
-    //     const response = await fetch(
-    //         `${BASE_URL}attendee?title=${encodeURIComponent(this.title)}&attendee=${encodeURIComponent(
-    //             attendeeId
-    //         )}`
-    //     );
-    //     const json = await response.json();
-    //     return json.AttendeeInfo.Name;
-    // }
+    async getAttendee(attendeeId: string): Promise<string | null> {
+        const response = await fetch(
+            `/meetings/users/attendees/${encodeURIComponent(attendeeId)}`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: 'GET'
+            }
+        );
+        if (response.ok) {
+            const json = await response.json();
+            return json.userName;
+        }
+        return null;
+    }
 
     startPreviewVideo(ref: HTMLVideoElement) {
         this.audioVideo?.startVideoPreviewForVideoInput(ref);
@@ -168,6 +204,7 @@ class MeetingManager {
 
     stopPreviewVideo(ref: HTMLVideoElement) {
         this.audioVideo?.stopVideoPreviewForVideoInput(ref);
+        this.audioVideo?.chooseVideoInputDevice(null);
     }
 
     bindAudioElement(ref: HTMLAudioElement) {

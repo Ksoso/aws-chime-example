@@ -1,7 +1,9 @@
-import {MeetingRepo} from './MeetingRepo';
+import {MeetingRepoImpl} from './MeetingRepoImpl';
+import {UserRepoImpl} from './UserRepoImpl';
 
-const meetingRepo = new MeetingRepo();
+const meetingRepo = new MeetingRepoImpl();
+const userRepo = new UserRepoImpl();
 
 export {
-    meetingRepo
+    meetingRepo, userRepo
 };

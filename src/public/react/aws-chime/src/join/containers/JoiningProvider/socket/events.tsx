@@ -23,8 +23,13 @@ export default function bindSocketEvents(socket: Socket, dispatch: Dispatch<Acti
         });
     });
 
+    socket.on(EVENTS.EXIT, (userList: UserList) => {
+        dispatch({type: Type.SetActiveUsers, activeUsers: userList});
+    });
+
     return () => {
         socket.off(EVENTS.USER_LIST);
         socket.off(EVENTS.CALL_STATUS_CHANGE);
+        socket.off(EVENTS.EXIT);
     };
 }

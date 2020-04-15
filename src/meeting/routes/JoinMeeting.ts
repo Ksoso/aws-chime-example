@@ -1,19 +1,16 @@
 import {BaseRouteHandler} from '../../shared/BaseRouteHandler';
 import * as express from 'express';
-import {MeetingRepo} from '../repos/MeetingRepo';
 import {Chime} from 'aws-sdk';
 import {v4 as uuidV4} from 'uuid';
 import {Meeting} from 'aws-sdk/clients/chime';
+import {MeetingRepo} from '../repos/MeetingRepo.interface';
+import {UserRepo} from '../repos/UserRepo.interface';
+import {User} from '../../shared/User.interface';
 
 export class JoinMeeting extends BaseRouteHandler {
 
-    private meetingRepo: MeetingRepo;
-    private chime: Chime;
-
-    constructor(meetingRepo: MeetingRepo, chime: Chime) {
+    constructor(readonly meetingRepo: MeetingRepo, readonly userRepo: UserRepo, readonly chime: Chime) {
         super();
-        this.meetingRepo = meetingRepo;
-        this.chime = chime;
     }
 
     protected async executeImpl(req: express.Request, res: express.Response): Promise<void | any> {
@@ -21,7 +18,7 @@ export class JoinMeeting extends BaseRouteHandler {
 
         let currentMeeting: Meeting;
 
-        if (!this.meetingRepo.hasMeeting(meetingId)) {
+        if (!this.meetingRepo.exist(meetingId)) {
             const createMeetingResponse = await this.chime
                 .createMeeting({ClientRequestToken: uuidV4()}).promise();
             if (createMeetingResponse.Meeting) {
@@ -41,6 +38,14 @@ export class JoinMeeting extends BaseRouteHandler {
                 }).promise()
             ).Attendee
         };
+
+        const userByUuid: User | undefined = Object.values(this.userRepo.all()).find(u => u.uuid === userUuid);
+        if (userByUuid) {
+            this.userRepo.updateUser(userByUuid.wsId, {
+                attendeeId: joinInfo.attendee?.AttendeeId,
+                meetingId
+            });
+        }
 
         return this.ok<typeof joinInfo>(res, joinInfo);
     }

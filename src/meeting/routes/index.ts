@@ -1,7 +1,10 @@
-import {meetingRepo} from '../repos';
+import {meetingRepo, userRepo} from '../repos';
 import {DeleteMeeting} from './DeleteMeeting';
 import {JoinMeeting} from './JoinMeeting';
 import {AllMeetings} from './AllMeetings';
+import {AllUsers} from './AllUsers';
+import {MeetingExist} from './MeetingExist';
+import {FindUserByAttendeeId} from './FindUserByAttendeeId';
 
 const AWS = require('aws-sdk');
 const chime = new AWS.Chime({
@@ -9,12 +12,13 @@ const chime = new AWS.Chime({
     endpoint: 'https://service.chime.aws.amazon.com/console'
 });
 
-console.log(meetingRepo);
-
-const joinMeeting = new JoinMeeting(meetingRepo, chime);
+const joinMeeting = new JoinMeeting(meetingRepo, userRepo, chime);
 const deleteMeeting = new DeleteMeeting(meetingRepo, chime);
 const allMeetings = new AllMeetings(meetingRepo, chime);
+const allUsers = new AllUsers(userRepo);
+const meetingExist = new MeetingExist(meetingRepo);
+const findUserByAttendeeId = new FindUserByAttendeeId(userRepo);
 
 export {
-    joinMeeting, deleteMeeting, allMeetings
+    joinMeeting, deleteMeeting, allMeetings, allUsers, meetingExist, findUserByAttendeeId
 };

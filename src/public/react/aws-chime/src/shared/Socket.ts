@@ -11,7 +11,8 @@ export const EVENTS = {
     CALL_ACCEPTED: 'callAccepted',
     CALL_DECLINED: 'callDeclined',
     ACCEPT_USER_CALL: 'acceptUserCall',
-    DECLINE_USER_CALL: 'declineUserCall'
+    DECLINE_USER_CALL: 'declineUserCall',
+    EXIT: 'exit',
 };
 
 class Socket {

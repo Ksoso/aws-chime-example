@@ -1,5 +1,5 @@
 import React, {createContext, Dispatch, useEffect, useReducer} from 'react';
-import {Action, initialState, reducer, State} from './reducer';
+import {Action, initialState, reducer, State, Type} from './reducer';
 import bindSocketEvents from './socket/events';
 import {useMeetingProviderState} from '../../../shared';
 
@@ -16,6 +16,25 @@ const JoiningProvider: React.FC = ({children}) => {
         return () => {
             unbind();
         };
+    }, [socket]);
+
+    useEffect(() => {
+        (async () => {
+            if (socket.socketId) {
+                const jsonResponse = await fetch(`/meetings/users/${encodeURIComponent(socket.socketId)}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'GET',
+                });
+
+                const json = await jsonResponse.json();
+                const data = await json;
+
+                dispatch({type: Type.SetActiveUsers, activeUsers: data});
+            }
+        })();
     }, [socket]);
 
     return <JoiningProviderState.Provider value={state}>

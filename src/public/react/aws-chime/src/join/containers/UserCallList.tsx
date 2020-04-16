@@ -84,12 +84,14 @@ const UserCallList: React.FC = () => {
     const isCallingTo = Boolean(callStatus && 'connecting' === callStatus.status);
     const isIncomingCall = Boolean(callStatus && 'incoming' === callStatus.status);
 
+    const isUserLoggedIn = Object.keys(activeUsers).some(key => key === socket.socketId);
+
     return <div>
         <Typography component='h1' variant='h4'>Video call phone book</Typography>
         <Divider/>
         <List style={{width: '100%'}}>
             {
-                Object.values(activeUsers)
+                isUserLoggedIn && Object.values(activeUsers)
                     .map((user) => <CallListItem key={user.wsId} user={user}
                                                  isCurrentUser={user.wsId === socket.socketId}
                                                  onMakeCallClick={handleOnMakeCallClick}/>)

@@ -98,13 +98,13 @@ const UserCallList: React.FC = () => {
             }
         </List>
         {openCallDialog && (isCallingTo || isIncomingCall) &&
-        <Dialog open={openCallDialog} onClose={handleCallDialogClose}>
+        <Dialog open={openCallDialog} onClose={handleCallDialogClose} disableBackdropClick>
             <DialogTitle>{isCallingTo ? `Calling to ${callStatus?.recipient.userName}`
                 : `${callStatus?.recipient.userName} is calling to you`}</DialogTitle>
             <DialogContent>
                 <div style={{width: '400px'}}>
                     <LinearProgress/>
-                    <LinearProgress color='secondary'/>
+                    <LinearProgress color='secondary' style={{marginTop: '5px'}}/>
                 </div>
             </DialogContent>
             <DialogActions>

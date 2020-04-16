@@ -23,10 +23,7 @@ export interface RosterAttendee {
 }
 
 export interface RosterState {
-    attendees: {
-        [key: string]: RosterAttendee
-    };
-    version: number;
+    [key: string]: RosterAttendee
 }
 
 export interface AWSChimeEventHandlersState {
@@ -44,9 +41,7 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
         tiles: {}
     });
 
-    const [roster, setRoster] = React.useState<RosterState>({
-        attendees: {}, version: 0
-    });
+    const [roster, setRoster] = React.useState<RosterState>({});
 
     useEffect(() => {
         const audioVideoObserver = new AudioVideoObserverImpl(setVideo);
@@ -79,9 +74,10 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
     const awsState: AWSChimeEventHandlersState = {video, roster};
     return <AWSChimeProviderProviderState.Provider value={awsState}>
         {children}
-        <Dialog open={openDialog}>
+        <Dialog open={openDialog} disableBackdropClick>
             <DialogTitle>Call ended</DialogTitle>
-            <DialogContent>Call ended or other user left</DialogContent>
+            <DialogContent>Call ended or other user left. After clicking 'OK' you will return to
+                Joining Room</DialogContent>
             <DialogActions>
                 <Button fullWidth variant={'contained'} color={'primary'}
                         onClick={() => history.push(routes.ROOT)}>Ok</Button>

@@ -8,7 +8,7 @@ const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         paper: {
             border: `1px solid ${theme.palette.divider}`,
-            width: '20vw',
+            width: '15vw',
             maxHeight: '30vh',
             overflow: 'auto'
         },
@@ -20,16 +20,16 @@ const Roster: React.FC = () => {
     const classes = useStyles();
     const {roster} = useAWSChimeEventHandlersState();
 
-    const attendees = Object.entries(roster.attendees)
+    const attendees = Object.entries(roster)
         .map(([key, attendee]) => <Attendee key={key} isMuted={attendee.muted}
                                             userName={attendee.name}
                                             isTalking={attendee.active}/>);
 
-    return <Paper className={classes.paper}>
+    return Boolean(Object.values(roster).length) ? <Paper className={classes.paper}>
         <List>
             {attendees}
         </List>
-    </Paper>;
+    </Paper> : null;
 };
 
 export default Roster;

@@ -6,7 +6,7 @@ import {Call as MuteIcon, PhoneInTalk as CurrentlyTalkingIcon} from '@material-u
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
         activeSpeaker: {
-            border: `1px solid ${theme.palette.secondary.main}`,
+            backgroundColor: theme.palette.secondary.light,
         },
     }), {name: 'Attendee'}
 );

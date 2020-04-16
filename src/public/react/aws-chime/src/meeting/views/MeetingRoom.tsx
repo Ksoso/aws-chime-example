@@ -17,14 +17,13 @@ const useStyles = makeStyles(theme => createStyles({
     },
     toolbar: {
         position: 'absolute',
-        top: '90vh',
-        left: '42vw',
+        bottom: '5%',
+        left: '42%',
         zIndex: 10,
     },
     videosContainer: {
         width: '100%',
         height: '100%',
-        backgroundColor: theme.palette.primary.light,
         display: 'flex',
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -34,13 +33,13 @@ const useStyles = makeStyles(theme => createStyles({
     videos: {
         backgroundColor: theme.palette.divider,
         width: '95%',
-        height: '90%',
-        padding: theme.spacing(5)
+        height: '95%',
+        padding: theme.spacing(1)
     },
     roster: {
         position: 'absolute',
-        top: '25px',
-        left: '25px',
+        bottom: '5%',
+        left: '4%',
         zIndex: 10,
     }
 }), {name: 'MeetingRoom'});
@@ -97,7 +96,7 @@ const MeetingRoom = () => {
             <Roster/>
         </div>
         <div className={classes.videosContainer}>
-            <Box borderRadius={14} className={classes.videos}>
+            <Box borderRadius={10} className={classes.videos}>
                 <VideoManager/>
                 {isAudio && <MeetingAudio meetingManager={meetingManager}/>}
             </Box>

@@ -1,6 +1,6 @@
 import React, {useEffect, useRef} from 'react';
-import {makeStyles} from '@material-ui/core/styles';
-import classNames from 'classnames';
+import {createStyles, makeStyles} from '@material-ui/core/styles';
+import {Badge, Typography} from '@material-ui/core';
 
 interface VideoTileProps {
     isLocal: boolean;
@@ -9,15 +9,23 @@ interface VideoTileProps {
     bindVideoTile: (tileId: number, videoRef: HTMLVideoElement) => void;
 }
 
-const useStyles = makeStyles({
+const useStyles = makeStyles(theme => createStyles({
     root: {
-        height: '400px',
-        width: '100%'
+        height: '100%',
+        width: '100%',
+        position: 'relative',
     },
-    local: {
-        border: '2px solid red'
+    video: {
+        height: '100%',
+        width: '100%',
+    },
+    nameplate: {
+        position: 'absolute',
+        right: '50%',
+        paddingTop: '5px',
+        zIndex: 10,
     }
-}, {name: 'videoTile'});
+}), {name: 'videoTile'});
 
 const VideoTile: React.FC<VideoTileProps> = ({bindVideoTile, tileId, nameplate, isLocal = false}) => {
     const classes = useStyles();
@@ -30,7 +38,15 @@ const VideoTile: React.FC<VideoTileProps> = ({bindVideoTile, tileId, nameplate, 
         bindVideoTile(tileId, videoRef.current);
     }, [videoRef, tileId, bindVideoTile]);
 
-    return <video className={classNames(classes.root, {[classes.local]: isLocal})} ref={videoRef}/>;
+    return <div className={classes.root}>
+        <div className={classes.nameplate}>
+            <Badge variant={'dot'} color={'secondary'} component={'div'} invisible={!isLocal}>
+                <Typography component={'h1'} variant={'h4'} color={'textSecondary'}
+                            align={'center'}>{nameplate.toUpperCase()} </Typography>
+            </Badge>
+        </div>
+        <video className={classes.video} ref={videoRef}/>
+    </div>;
 };
 
 export default React.memo<VideoTileProps>(VideoTile);

@@ -26,7 +26,7 @@ export default class AttendeeEventsWatcher {
     private subscribeToActiveSpeakerDetector = (attendeeIds: string[]) => {
         this.dispatch(prevState => {
 
-            const newAttendees = {...prevState.attendees};
+            const newAttendees = {...prevState};
             for (const attendeeId in newAttendees) {
                 newAttendees[attendeeId] = {...newAttendees[attendeeId], active: false};
             }
@@ -38,7 +38,7 @@ export default class AttendeeEventsWatcher {
                 }
             }
 
-            return {...prevState, attendees: newAttendees};
+            return newAttendees;
         });
     };
 
@@ -55,8 +55,8 @@ export default class AttendeeEventsWatcher {
 
         this.dispatch(prevState => {
             if (!present) {
-                const {[attendeeId]: omit, ...rest} = prevState.attendees;
-                return {...prevState, attendees: {...rest}};
+                const {[attendeeId]: omit, ...rest} = prevState;
+                return {...rest};
             }
             self.meetingManager.subscribeToAttendeeVolumeIndicator(attendeeId,
                 async (attendeeId: string, volume: number | null, muted: boolean | null, signalStrength: number | null) => {
@@ -68,24 +68,27 @@ export default class AttendeeEventsWatcher {
 
     private subscribeToVolumeIndicator = (attendeeId: string, volume: number | null, muted: boolean | null, signalStrength: number | null) => {
         this.dispatch(prevState => {
-            const newAttendees = {...prevState.attendees};
+            const newAttendees = {...prevState};
             if (!newAttendees[attendeeId]) {
                 newAttendees[attendeeId] = {
                     name: this.attendeeIdToUsername[attendeeId] ? this.attendeeIdToUsername[attendeeId] : attendeeId,
                     active: false
                 };
             }
+
             if (volume !== null) {
                 newAttendees[attendeeId].volume = Math.round(volume * 100);
             }
+
             if (muted !== null) {
                 newAttendees[attendeeId].muted = muted;
             }
+
             if (signalStrength !== null) {
                 newAttendees[attendeeId].signalStrength = Math.round(signalStrength * 100);
             }
 
-            return {...prevState, attendees: newAttendees};
+            return newAttendees;
         });
     };
 }

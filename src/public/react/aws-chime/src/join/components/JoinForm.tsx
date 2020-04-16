@@ -5,8 +5,9 @@ import {useMeetingProviderState} from '../../shared';
 
 const JoinForm = () => {
 
-    const [formState, setFormState] = React.useState({
-        'userName': '',
+    const [formState, setFormState] = React.useState<{ userName: string, userNameError: string }>({
+        userName: '',
+        userNameError: ''
     });
 
     const {socket} = useMeetingProviderState();
@@ -18,17 +19,40 @@ const JoinForm = () => {
         });
     };
 
+    const validateField = (name): boolean => {
+        if (formState[name]) {
+            setFormState({
+                ...formState, [`${name}Error`]: ''
+            });
+            return true;
+        } else {
+            setFormState({
+                ...formState, [`${name}Error`]: 'User name can not be empty'
+            });
+            return false;
+        }
+    };
+
+    const handleOnBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        validateField(e.target.name);
+    };
+
     const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        socketEmit(socket).subscribe(formState);
+
+        if (validateField('userName')) {
+            socketEmit(socket).subscribe(formState);
+        }
     };
 
     return <form id='join-meeting' noValidate autoComplete='off'>
         <Typography component='h1' variant='h4'>Join to the room</Typography>
         <Divider/>
-        <TextField label='Your name' value={formState['userName']} onChange={handleOnChange}
+        <TextField error={Boolean(formState['userNameError'])} label='Your name'
+                   onBlur={handleOnBlur} value={formState['userName']}
+                   onChange={handleOnChange}
                    name='userName' placeholder='Your name' fullWidth required
-                   helperText='You will be visible as this name during meeting'/>
+                   helperText={formState['userNameError'] ? formState['userNameError'] : 'You will be visible as this name during meeting'}/>
         <Divider/>
         <Button type='submit' onClick={handleSubmit} color='primary' variant='contained' fullWidth>
             Join

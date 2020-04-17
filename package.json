@@ -5,9 +5,9 @@
   "main": "src/start.js",
   "scripts": {
     "start": "npm install --only=prod && NODE_ENV=production node ./build/start.js",
-    "start-dev": "nodemon --config \"./util/nodemon.json\"/",
+    "start-dev": "nodemon --config \"./utils/nodemon.json\"/",
     "test": "NODE_ENV=testing ts-node ./src/start.ts",
-    "build": "sh ./util/buildForProd.sh"
+    "build": "sh utils/buildForProd.sh"
   },
   "repository": {
     "type": "git",

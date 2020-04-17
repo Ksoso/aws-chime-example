@@ -24,6 +24,12 @@ const mapToSelectOption = (mediaDeviceInfo: MediaDeviceInfo, idx: number): Devic
     original: mediaDeviceInfo
 });
 
+const emptyValue: DeviceInfo = {
+    label: 'None',
+    value: 'none',
+    original: {} as MediaDeviceInfo
+};
+
 class DeviceChangeObserverImpl implements DeviceChangeObserver {
 
     constructor(readonly dispatchForAudioInput: React.Dispatch<SetStateAction<DeviceInfo[]>>,
@@ -33,21 +39,22 @@ class DeviceChangeObserverImpl implements DeviceChangeObserver {
 
     audioInputsChanged(freshAudioInputDeviceList?: MediaDeviceInfo[]): void {
         this.dispatchForAudioInput(freshAudioInputDeviceList ?
-            freshAudioInputDeviceList.map(mapToSelectOption) : []);
+            freshAudioInputDeviceList.map(mapToSelectOption) : [emptyValue]);
     }
 
     audioOutputsChanged(freshAudioOutputDeviceList?: MediaDeviceInfo[]): void {
         this.dispatchForAudioOutput(freshAudioOutputDeviceList ?
-            freshAudioOutputDeviceList.map(mapToSelectOption) : []);
+            freshAudioOutputDeviceList.map(mapToSelectOption) : [emptyValue]);
     }
 
     videoInputsChanged(freshVideoInputDeviceList?: MediaDeviceInfo[]): void {
         this.dispatchForVideoInput(freshVideoInputDeviceList ?
-            freshVideoInputDeviceList.map(mapToSelectOption) : []);
+            freshVideoInputDeviceList.map(mapToSelectOption) : [emptyValue]);
     }
 
 }
 
+//@TODO Move loading nad refresh of devices to custom hook or context
 const SettingsForm: React.FC = () => {
 
     const {meetingManager} = useMeetingProviderState();
@@ -68,9 +75,9 @@ const SettingsForm: React.FC = () => {
                 deviceController.listVideoInputDevices()
             ]);
 
-            setAudioInputs(audioInputsP.map(mapToSelectOption));
-            setAudioOutputs(audioOutputsP.map(mapToSelectOption));
-            setVideoInputs(videoInputsP.map(mapToSelectOption));
+            setAudioInputs(audioInputsP.length ? audioInputsP.map(mapToSelectOption) : [emptyValue]);
+            setAudioOutputs(audioOutputsP.length ? audioOutputsP.map(mapToSelectOption) : [emptyValue]);
+            setVideoInputs(videoInputsP.length ? videoInputsP.map(mapToSelectOption) : [emptyValue]);
         })();
     }, []);
 
@@ -117,14 +124,14 @@ const SettingsForm: React.FC = () => {
         const deviceId = videoInputs.length ? videoInputs[0].value : '';
         setFormState(state => ({...state, 'camera': deviceId}));
         (async () => {
-            if (deviceId) {
+            if (deviceId && deviceId !== 'none') {
                 await meetingManager.setDevice(videoInputs[0].original);
                 if (previewVideoRef.current) {
                     meetingManager.startPreviewVideo(previewVideoRef.current);
                 }
             } else {
                 if (previewVideoRef.current) {
-                    meetingManager.stopPreviewVideo(previewVideoRef.current);
+                    await meetingManager.stopPreviewVideo(previewVideoRef.current);
                 }
             }
         })();
@@ -141,6 +148,14 @@ const SettingsForm: React.FC = () => {
             await meetingManager.setDevice(device.original);
             if ('videoinput' === device.original.kind && previewVideoRef.current) {
                 meetingManager.startPreviewVideo(previewVideoRef.current);
+            }
+        } else if (deviceId === 'none') {
+            if (deviceType === 'camera' && previewVideoRef.current) {
+                await meetingManager.stopPreviewVideo(previewVideoRef.current);
+            } else if (deviceType === 'speaker') {
+                await meetingManager.setDefaultAudioOutput();
+            } else if (deviceType === 'microphone') {
+                await meetingManager.setDefaultAudioInput();
             }
         }
     };

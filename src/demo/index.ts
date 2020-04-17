@@ -4,8 +4,7 @@ import {Router} from 'express';
 const demoRouter: Router = Router();
 const demoRouteHandler = new DemoRoute();
 
-demoRouter.get('/:name',
-    (req, res) => demoRouteHandler.execute(req, res));
+demoRouter.get('/:name', demoRouteHandler.execute);
 
 export {
     demoRouter

@@ -14,6 +14,15 @@ class MeetingManager {
     private meetingSession?: DefaultMeetingSession;
     private audioVideo?: AudioVideoFacade;
     private title?: string;
+    private currentDevices: {
+        audioInput: MediaDeviceInfo | null,
+        audioOutput: MediaDeviceInfo | null,
+        videoInput: MediaDeviceInfo | null
+    } = {
+        audioInput: null,
+        audioOutput: null,
+        videoInput: null,
+    };
 
     async initializeMeetingSession(configuration: MeetingSessionConfiguration): Promise<any> {
         const logger = new ConsoleLogger('DEV-SDK', LogLevel.ERROR);
@@ -27,6 +36,9 @@ class MeetingManager {
         this.meetingSession = undefined;
         this.audioVideo = undefined;
         this.title = undefined;
+        this.currentDevices = {
+            audioOutput: null, videoInput: null, audioInput: null
+        };
     }
 
     setDeviceLabelTrigger(labelTrigger: () => Promise<MediaStream>) {
@@ -109,9 +121,13 @@ class MeetingManager {
 
     async startLocalVideo(): Promise<void> {
         if (this.audioVideo) {
-            const videoInput = await this.audioVideo.listVideoInputDevices();
-            const defaultVideo = videoInput[0];
-            await this.audioVideo.chooseVideoInputDevice(defaultVideo);
+            if (this.currentDevices.videoInput == null) {
+                const videoInput = await this.audioVideo.listVideoInputDevices();
+                const defaultVideo = videoInput[0];
+                await this.audioVideo.chooseVideoInputDevice(defaultVideo);
+            } else {
+                await this.audioVideo.chooseVideoInputDevice(this.currentDevices.videoInput);
+            }
             this.audioVideo.startLocalVideoTile();
         }
     }
@@ -164,13 +180,17 @@ class MeetingManager {
     async endMeeting(): Promise<any> {
 
         if (this.title) {
-            await fetch(`/meetings/${encodeURIComponent(this.title)}`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                method: 'DELETE',
-            });
+            try {
+                await fetch(`/meetings/${encodeURIComponent(this.title)}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'DELETE',
+                });
+            } catch (e) {
+                console.error(e.message);
+            }
         }
 
         this.leaveMeeting();
@@ -183,7 +203,7 @@ class MeetingManager {
 
     async getAttendee(attendeeId: string): Promise<string | null> {
         const response = await fetch(
-            `/meetings/users/attendees/${encodeURIComponent(attendeeId)}`, {
+            `/users/attendees/${encodeURIComponent(attendeeId)}`, {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
@@ -202,7 +222,7 @@ class MeetingManager {
         this.audioVideo?.startVideoPreviewForVideoInput(ref);
     }
 
-    stopPreviewVideo(ref: HTMLVideoElement) {
+    async stopPreviewVideo(ref: HTMLVideoElement) {
         this.audioVideo?.stopVideoPreviewForVideoInput(ref);
         this.audioVideo?.chooseVideoInputDevice(null);
     }
@@ -223,16 +243,27 @@ class MeetingManager {
         this.audioVideo?.realtimeUnmuteLocalAudio();
     }
 
+    async setDefaultAudioInput(): Promise<void> {
+        await this.audioVideo?.chooseAudioInputDevice(null);
+    }
+
+    async setDefaultAudioOutput(): Promise<void> {
+        await this.audioVideo?.chooseAudioOutputDevice(null);
+    }
+
     async setDevice(device: MediaDeviceInfo): Promise<void> {
         if (this.audioVideo) {
             switch (device.kind) {
                 case 'audioinput':
+                    this.currentDevices.audioInput = device;
                     await this.audioVideo.chooseAudioInputDevice(device.deviceId);
                     break;
                 case 'audiooutput':
+                    this.currentDevices.audioOutput = device;
                     await this.audioVideo.chooseAudioOutputDevice(device.deviceId);
                     break;
                 case 'videoinput':
+                    this.currentDevices.videoInput = device;
                     await this.audioVideo.chooseVideoInputDevice(device);
                     break;
                 default:

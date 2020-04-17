@@ -6,24 +6,16 @@ import * as compression from 'compression';
 import {Socket} from 'socket.io';
 import {meetingRouter} from './meeting';
 import {demoRouter} from './demo';
-import {UserSocketHandler} from './meeting/socket';
-import {userRepo} from './meeting/repos';
+import {UserSocketHandler} from './user/socket';
+import {userRepo} from './user/repos';
+import {usersRouter} from './user';
 
 class Server {
 
     private readonly SERVER_START_MSG = 'AWS Chime server started on port: ';
-    private readonly DEV_MSG = 'Express Server is running in development mode. No front-end ' +
-        'content is being served.';
+    private readonly DEV_MSG = 'DEVELOPMENT MODE. No frontend content is being served.';
 
     private server?: NodeHttp;
-    private usersMap: {
-        [key: string]: {
-            wsId: string,
-            userName: string,
-            uuid: string
-        }
-    } = {};
-
     public app: express.Application;
 
     constructor() {
@@ -39,6 +31,7 @@ class Server {
         this.app.use(compression());
         //adding routes
         this.app.use('/api/v1/meetings', meetingRouter);
+        this.app.use('/api/v1/users', usersRouter);
         this.app.use('/api/v1/demo', demoRouter);
 
         // Point to front-end code

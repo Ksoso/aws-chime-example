@@ -22,10 +22,9 @@ export class DeleteMeeting extends BaseRouteHandler {
         if (meeting && meeting.MeetingId) {
             await this.chime.deleteMeeting({MeetingId: meeting.MeetingId}).promise();
             this.meetingRepo.deleteMeeting(meetingId);
-            res.sendStatus(NO_CONTENT);
-        } else {
-            this.fail(res, `Meeting with meetingId: ${meetingId} not found`);
         }
+
+        res.sendStatus(NO_CONTENT);
     }
 
 }

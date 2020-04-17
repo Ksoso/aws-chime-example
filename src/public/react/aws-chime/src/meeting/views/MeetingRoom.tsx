@@ -67,8 +67,8 @@ const MeetingRoom = () => {
         const newDeactivatedButton = prevActiveButtons.filter(btn => !newActiveButtons.includes(btn)).pop();
         //Active buttons handler
         if ('endMeeting' === newActivatedButton) {
-            await meetingManager.endMeeting();
             history.push(routes.ROOT);
+            // await meetingManager.endMeeting();
         } else if ('videoIn' === newActivatedButton) {
             await meetingManager.startLocalVideo();
         } else if ('leaveMeeting' === newActivatedButton) {

@@ -69,6 +69,13 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
         });
     }, [meetingManager]);
 
+    //If user hit browser refresh or redirect outside of meeting, we do cleanup
+    useEffect(() => {
+        return () => {
+            meetingManager.endMeeting();
+        };
+    }, [meetingManager]);
+
     const openDialog = video.status === MeetingSessionStatusCode.AudioCallEnded;
 
     const awsState: AWSChimeEventHandlersState = {video, roster};

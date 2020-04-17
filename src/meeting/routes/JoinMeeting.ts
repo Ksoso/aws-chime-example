@@ -4,7 +4,7 @@ import {Chime} from 'aws-sdk';
 import {v4 as uuidV4} from 'uuid';
 import {Meeting} from 'aws-sdk/clients/chime';
 import {MeetingRepo} from '../repos/MeetingRepo.interface';
-import {UserRepo} from '../repos/UserRepo.interface';
+import {UserRepo} from '../../user/repos/UserRepo.interface';
 import {User} from '../../shared/User.interface';
 
 export class JoinMeeting extends BaseRouteHandler {

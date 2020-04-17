@@ -5,7 +5,7 @@ export abstract class BaseRouteHandler {
 
     protected abstract executeImpl(req: express.Request, res: express.Response): Promise<void | any>;
 
-    public async execute(req: express.Request, res: express.Response): Promise<void> {
+    public execute = async (req: express.Request, res: express.Response): Promise<void> => {
         try {
             await this.executeImpl(req, res);
         } catch (error) {
@@ -13,7 +13,7 @@ export abstract class BaseRouteHandler {
             console.log(error);
             this.fail(res, 'An unexpected error occurred');
         }
-    }
+    };
 
     public static jsonResponse(res: express.Response, code: number, message: string) {
         return res.status(code).json({message});

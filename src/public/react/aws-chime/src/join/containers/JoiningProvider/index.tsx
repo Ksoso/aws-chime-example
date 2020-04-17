@@ -21,7 +21,7 @@ const JoiningProvider: React.FC = ({children}) => {
     useEffect(() => {
         (async () => {
             if (socket.socketId) {
-                const jsonResponse = await fetch(`/meetings/users/${encodeURIComponent(socket.socketId)}`, {
+                const jsonResponse = await fetch(`/users/${encodeURIComponent(socket.socketId)}`, {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json'

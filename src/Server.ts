@@ -43,9 +43,8 @@ class Server {
     }
 
     private serveFrontEndProd(): void {
-        const dir = path.join(__dirname, 'public/react/demo-react/');
+        const dir = path.join(__dirname, 'public/react/aws-chime/');
         // Set the static and views directory
-        this.app.set('views', dir);
         this.app.use(express.static(dir));
         // Serve front-end content
         this.app.get('*', (req, res) => {

@@ -10,8 +10,18 @@ import {
     MeetingSessionConfiguration
 } from 'amazon-chime-sdk-js';
 
+/**
+ * Master class for handling AWS Chime workflow
+ *
+ */
 class MeetingManager {
+    /**
+     * Current AWS Chime meeting session
+     */
     private meetingSession?: DefaultMeetingSession;
+    /**
+     * Derived from meeting session facade for handling audio and video
+     */
     private audioVideo?: AudioVideoFacade;
     private title?: string;
     private currentDevices: {
@@ -24,14 +34,23 @@ class MeetingManager {
         videoInput: null,
     };
 
+    /**
+     * Create new meeting session. Meeting session is the barebone for further work with sdk.
+     *
+     * @param configuration
+     */
     async initializeMeetingSession(configuration: MeetingSessionConfiguration): Promise<any> {
         const logger = new ConsoleLogger('DEV-SDK', LogLevel.ERROR);
         const deviceController = new DefaultDeviceController(logger);
+        //Saw this in examples, do not know why this is set to false
         configuration.enableWebAudio = false;
         this.meetingSession = new DefaultMeetingSession(configuration, logger, deviceController);
         this.audioVideo = this.meetingSession.audioVideo;
     }
 
+    /**
+     * Bring back MeetingManager to default state
+     */
     private cleanUp() {
         this.meetingSession = undefined;
         this.audioVideo = undefined;
@@ -41,6 +60,12 @@ class MeetingManager {
         };
     }
 
+    /**
+     * There is difference between Web Browser how they provide current devices list to user.
+     * I'm only using this trigger to force permission window to show on settings view
+     *
+     * @param labelTrigger
+     */
     setDeviceLabelTrigger(labelTrigger: () => Promise<MediaStream>) {
         this.audioVideo?.setDeviceLabelTrigger(labelTrigger);
     }
@@ -49,14 +74,31 @@ class MeetingManager {
         return Boolean(this.title);
     }
 
+    /**
+     * Adds subscriber to meeting realtime event which notify about join/left users from meeting
+     *
+     * @param subscriber
+     */
     subscribeToAttendeeIdPresence(subscriber: (attendeeId: string, present: boolean) => void) {
         this.audioVideo?.realtimeSubscribeToAttendeeIdPresence(subscriber);
     }
 
+    /**
+     * Cleanup for attendee presence subscriber
+     *
+     * @param subscriber
+     */
     unsubscribeToAttendeeIdPresence(subscriber: (attendeeId: string, present: boolean) => void) {
         this.audioVideo?.realtimeUnsubscribeToAttendeeIdPresence(subscriber);
     }
 
+    /**
+     * Subscriber to real time event which notify about connection parameters of given attendee.
+     * That is how we can get information if specified user/attendee got muted mic or problem with internet connection
+     *
+     * @param attendeeId
+     * @param subscriber
+     */
     subscribeToAttendeeVolumeIndicator(attendeeId: string, subscriber: (attendeeId: string,
                                                                         volume: number | null,
                                                                         muted: boolean | null,
@@ -68,6 +110,14 @@ class MeetingManager {
         this.audioVideo?.realtimeUnsubscribeFromVolumeIndicator(attendeeId);
     }
 
+    /**
+     * Subscriber which give us information about active speaker so we can highlight currently talking person.
+     *
+     *
+     * @param subscriber
+     * @param scoresCallback
+     * @param scoresCallbackIntervalMs
+     */
     subscribeToActiveSpeakerDetector(subscriber: (attendeeIds: string[]) => void,
                                      scoresCallback?: (scores: { [attendeeId: string]: number }) => void,
                                      scoresCallbackIntervalMs?: number) {
@@ -81,6 +131,12 @@ class MeetingManager {
         this.audioVideo?.unsubscribeFromActiveSpeakerDetector(subscriber);
     }
 
+    /**
+     * Audio observer is really important because base on data from it we can get information about currently streamed videos
+     * and render enough amount controls which handles video streaming
+     *
+     * @param observer
+     */
     addAudioVideoObserver(observer: AudioVideoObserver): void {
         if (!this.audioVideo) {
             console.error('AudioVideo not initialized. Cannot add observer');
@@ -115,10 +171,20 @@ class MeetingManager {
         this.audioVideo.removeDeviceChangeObserver(observer);
     }
 
+    /**
+     * Bind video tag ref to tile id.
+     * Video tile = one user streaming
+     *
+     * @param id
+     * @param videoEl
+     */
     bindVideoTile = (id: number, videoEl: HTMLVideoElement): void => {
         this.audioVideo?.bindVideoElement(id, videoEl);
     };
 
+    /**
+     * Run local user camera
+     */
     async startLocalVideo(): Promise<void> {
         if (this.audioVideo) {
             if (this.currentDevices.videoInput == null) {

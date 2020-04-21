@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Box, Button, Container, createStyles, Grid, makeStyles} from '@material-ui/core';
 import SettingsForm from '../containers/SettingsForm';
 import {useHistory} from 'react-router-dom';
@@ -20,6 +20,12 @@ const Settings: React.FC = () => {
     const classes = useStyles();
     const history = useHistory();
     const {meetingManager} = useMeetingProviderState();
+
+    useEffect(() => {
+        if (!meetingManager.meetingInProgress()) {
+            history.push(routes.ROOT);
+        }
+    }, [meetingManager, history]);
 
     return <Container maxWidth={'md'} className={classes.root}>
         <Box borderRadius={12} className={classes.boxContainer}>

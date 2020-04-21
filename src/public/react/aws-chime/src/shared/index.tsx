@@ -9,6 +9,11 @@ interface MeetingProviderState {
 
 const MeetingProviderContext = createContext<MeetingProviderState | null>(null);
 
+/**
+ * Shared context provider for whole application
+ *
+ * Responsible for creating Socket.io connection to server and propagate MeetingManger instance deep down
+ */
 const MeetingProvider: React.FC = ({children}) => {
 
     const [socket] = React.useState<Socket>(new Socket());
@@ -20,7 +25,10 @@ const MeetingProvider: React.FC = ({children}) => {
     };
 
     useEffect(() => {
-        socket.connect('http://127.0.0.1:3001', connected => {
+        const development: boolean = !process.env.NODE_ENV || process.env.NODE_ENV === 'development';
+        const socketUrl = development ? 'http://127.0.0.1:3001' : 'http://127.0.0.1:8081';
+
+        socket.connect(socketUrl, connected => {
             console.log(`WS connection status: ${connected}, socket id ${socket.socketId}`);
             setWsConnected(true);
         });

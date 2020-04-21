@@ -4,7 +4,14 @@ import {MeetingRepoImpl} from '../repos/MeetingRepoImpl';
 import {Chime} from 'aws-sdk';
 import {MeetingRepo} from '../repos/MeetingRepo.interface';
 
-export class AllMeetings extends BaseRouteHandler {
+/**
+ * This endpoint got one purpose: delete 100 of active meetings created by
+ * user connected with aws sdk.
+ *
+ * For delete more than 100, pagination has to be handled
+ *
+ */
+export class CleanupMeetings extends BaseRouteHandler {
 
     private meetingRepo: MeetingRepo;
     private chime: Chime;

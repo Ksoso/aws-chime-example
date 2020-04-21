@@ -4,7 +4,10 @@ import MeetingManager from '../../../shared/MeetingManager';
 
 export default class AttendeeEventsWatcher {
 
-    private attendeeId?: string;
+    private attendeeIds?: {
+        [key: string]: boolean
+    };
+
     private attendeeIdToUsername: { [key: string]: string } = {};
 
     constructor(readonly dispatch: React.Dispatch<SetStateAction<RosterState>>, readonly meetingManager: MeetingManager) {
@@ -18,8 +21,10 @@ export default class AttendeeEventsWatcher {
     unWatch() {
         this.meetingManager.unsubscribeToAttendeeIdPresence(this.subscribeToAttendeeIdPresence);
         this.meetingManager.unsubscribeFromActiveSpeakerDetector(this.subscribeToActiveSpeakerDetector);
-        if (this.attendeeId) {
-            this.meetingManager.unsubscribeFromAttendeeVolumeIndicator(this.attendeeId);
+        for (const key in this.attendeeIds) {
+            if (this.attendeeIds.hasOwnProperty(key) && this.attendeeIds[key]) {
+                this.meetingManager.unsubscribeFromAttendeeVolumeIndicator(key);
+            }
         }
     }
 
@@ -43,7 +48,9 @@ export default class AttendeeEventsWatcher {
     };
 
     private subscribeToAttendeeIdPresence = async (attendeeId: string, present: boolean): Promise<void> => {
-        this.attendeeId = attendeeId;
+        this.attendeeIds = {
+            attendeeId: present
+        };
         const self = this;
 
         if (present && !this.attendeeIdToUsername[attendeeId]) {
@@ -55,6 +62,7 @@ export default class AttendeeEventsWatcher {
 
         this.dispatch(prevState => {
             if (!present) {
+                self.meetingManager.unsubscribeFromAttendeeVolumeIndicator(attendeeId);
                 const {[attendeeId]: omit, ...rest} = prevState;
                 return {...rest};
             }

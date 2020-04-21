@@ -1,18 +1,27 @@
 import {BaseRouteHandler} from '../../shared/BaseRouteHandler';
 import * as express from 'express';
 import {Chime} from 'aws-sdk';
-import {v4 as uuidV4} from 'uuid';
 import {Meeting} from 'aws-sdk/clients/chime';
 import {MeetingRepo} from '../repos/MeetingRepo.interface';
 import {UserRepo} from '../../user/repos/UserRepo.interface';
 import {User} from '../../shared/User.interface';
 
+/**
+ * Handles Joining to AWS Chime Meeting
+ * If meeting id is not already in cache:
+ *  - new AWS Chime meeting will be created
+ *  - new attendee will be added to this meeting
+ * otherwise only new attendee will be added to existing meeting
+ */
 export class JoinMeeting extends BaseRouteHandler {
 
     constructor(readonly meetingRepo: MeetingRepo, readonly userRepo: UserRepo, readonly chime: Chime) {
         super();
     }
 
+    /**
+     *  Route expects meetingId and userUuid body params to be set as uuid v4
+     */
     protected async executeImpl(req: express.Request, res: express.Response): Promise<void | any> {
         const {meetingId, userUuid} = req.body;
 
@@ -20,7 +29,7 @@ export class JoinMeeting extends BaseRouteHandler {
 
         if (!this.meetingRepo.exist(meetingId)) {
             const createMeetingResponse = await this.chime
-                .createMeeting({ClientRequestToken: uuidV4()}).promise();
+                .createMeeting({ClientRequestToken: meetingId}).promise();
             if (createMeetingResponse.Meeting) {
                 currentMeeting = this.meetingRepo.saveMeeting(meetingId, createMeetingResponse.Meeting);
             } else {

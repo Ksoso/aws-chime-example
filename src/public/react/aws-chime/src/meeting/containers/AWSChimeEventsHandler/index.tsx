@@ -33,6 +33,10 @@ export interface AWSChimeEventHandlersState {
 
 const AWSChimeProviderProviderState = createContext<AWSChimeEventHandlersState | null>(null);
 
+/**
+ * Context provider which connect React with AWS Chime meeting session
+ *
+ */
 const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
     const history = useHistory();
     const {meetingManager} = useMeetingProviderState();
@@ -43,6 +47,9 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
 
     const [roster, setRoster] = React.useState<RosterState>({});
 
+    /**
+     * Adding/removing audio and video observer, mostly used to handling user video streaming in real time
+     */
     useEffect(() => {
         const audioVideoObserver = new AudioVideoObserverImpl(setVideo);
         if (meetingManager.meetingInProgress()) {
@@ -54,6 +61,9 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
         };
     }, [meetingManager]);
 
+    /**
+     * Adding/Removing handling of attendee events like who is currently muted or who the active speaker is
+     */
     useEffect(() => {
         const realtimeAttendeeWatcher = new AttendeeEventsWatcher(setRoster, meetingManager);
         realtimeAttendeeWatcher.watch();
@@ -63,13 +73,18 @@ const AWSChimeEventsHandlerProvider: React.FC = ({children}) => {
         };
     }, [meetingManager]);
 
+    /**
+     * Hack to show user Web Browser popup about giving permission to devices
+     */
     useEffect(() => {
         meetingManager.setDeviceLabelTrigger(async (): Promise<MediaStream> => {
             return await navigator.mediaDevices.getUserMedia({audio: true, video: true});
         });
     }, [meetingManager]);
 
-    //If user hit browser refresh or redirect outside of meeting, we do cleanup
+    /**
+     * If user hit browser refresh or redirect outside of meeting, we do cleanup
+     */
     useEffect(() => {
         return () => {
             meetingManager.endMeeting();

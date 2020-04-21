@@ -5,6 +5,10 @@ import {Chime} from 'aws-sdk';
 import {NO_CONTENT} from 'http-status-codes';
 import {MeetingRepo} from '../repos/MeetingRepo.interface';
 
+/**
+ * Remove Meeting from AWS Chime and application cache
+ *
+ */
 export class DeleteMeeting extends BaseRouteHandler {
 
     private meetingRepo: MeetingRepo;
